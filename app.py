@@ -119,4 +119,40 @@ if st.button("🔥 EJECUTAR ANÁLISIS PROFESIONAL CON ESTOS DATOS", use_containe
     prob_over = (np.sum((sim_vis + sim_loc) > linea_ou) / 10000) * 100
     
     ganador_proyectado = eq_vis if prob_ganador_vis > prob_ganador_loc else eq_local
-    porcentaje_ganador = max(prob_ganador_vis, prob_gan
+    porcentaje_ganador = max(prob_ganador_vis, prob_ganador_loc)
+    linea_totales_texto = f"OVER {linea_ou}" if prob_over > 50 else f"UNDER {linea_ou}"
+    porcentaje_totales = prob_over if prob_over > 50 else (100 - prob_over)
+
+    # Despliegue de Resultados
+    st.markdown(f"## 📊 Resultados Estadísticos de la Simulación")
+    res1, res2 = st.columns(2)
+    with res1: st.metric("🏆 GANADOR PROYECTADO", ganador_proyectado, f"{round(porcentaje_ganador, 1)}% Probabilidad")
+    with res2: st.metric("📈 TOTAL (Over/Under)", linea_totales_texto, f"{round(porcentaje_totales, 1)}% Probabilidad")
+
+    # Reporte Explicativo Dinámico
+    st.markdown("---")
+    st.markdown("### 📋 Justificación Técnico-Analítica")
+    
+    resumen_texto = f"""
+    * **Análisis de Lanzadores:** El abridor de los {eq_vis} ({p_vis}) registra un ERA de {era_vis} y WHIP de {whip_vis} frente al abridor de los {eq_local} ({p_local}) que presenta un FIP de {fip_loc}.
+    * **Efectividad del Bullpen:** El relevo de {eq_local} maneja un ERA de {bp_era_loc} con fatiga {bp_fatiga_loc}, mientras que el de {eq_vis} presenta un ERA de {bp_era_vis} con fatiga {bp_fatiga_vis}.
+    * **Poder de la Alineación:** El lineup de {eq_vis} opera con una fuerza de {wrc_vis} wRC+ ajustado, mientras que el de {eq_local} rinde para {wrc_loc} wRC+.
+    * **Factores de Entorno:** El encuentro se disputa con un Park Factor de {park_f}. El umpire asignado muestra una tendencia histórica de {umpire}.
+    """
+    st.info(resumen_texto)
+
+    # Nota de Mercado Informativa
+    st.markdown("---")
+    st.subheader("⚠️ Nota Informativa: Inteligencia del Mercado Vegas")
+    if rlm_check:
+        st.warning(f"""
+        **ALERTA DE REVERSE LINE MOVEMENT DETECTADO:**
+        * El público masivo está cargado con un **{pub_fav}**.
+        * La cuota abrió en **{c_apertura}** y se movió de forma inversa a **{c_actual}**.
+        * **Interpretación:** Los apostadores profesionales (*Sharps*) están respaldando activamente al bando contrario del público.
+        """)
+    else:
+        st.success(f"""
+        **MONITOREO DE MERCADO ESTABLE:**
+        * Flujo de apuestas del público: **{pub_fav}**. El mercado se mueve de forma estándar de **{c_apertura}** a **{c_actual}**. No hay anomalías detectadas.
+        """)
