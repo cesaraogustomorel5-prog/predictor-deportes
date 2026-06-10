@@ -1,23 +1,16 @@
 import streamlit as st
 import numpy as np
+import datetime
 
 st.set_page_config(page_title="Statline Predictor Pro", layout="wide")
 
+# --- ENCABEZADO Y FECHA ---
 st.title("🧠 Statline Predictor Pro - SHARP SYSTEM")
-st.write("Análisis estadístico automatizado y dinámico para Grandes Ligas.")
+fecha_hoy = datetime.date.today().strftime("%d de %B de %Y")
+st.write(f"📅 **Fecha de Análisis:** {fecha_hoy}")
+st.write("Sistema Híbrido: Selección automatizada o edición manual avanzada.")
 
-# --- 1. BASE DE DATOS COMPLETA DE PARTIDOS DEL DÍA ---
-# El robot real alimentará esta lista automáticamente cada mañana con los juegos del calendario
-opciones_partidos = [
-    "Los Angeles Dodgers vs Pittsburgh Pirates",
-    "New York Yankees vs Boston Red Sox",
-    "Houston Astros vs New York Mets",
-    "Atlanta Braves vs Philadelphia Phillies"
-]
-
-partido_seleccionado = st.selectbox("🎯 Selecciona el partido que deseas analizar hoy:", opciones_partidos)
-
-# --- 2. DICCIONARIO DE DATOS POR PARTIDO (El robot cambia estos números diario)
+# --- 1. BASE DE DATOS DE PARTIDOS PRE-CARGADOS ---
 base_datos_mlb = {
     "Los Angeles Dodgers vs Pittsburgh Pirates": {
         "local": "Pirates", "visitante": "Dodgers",
@@ -43,49 +36,87 @@ base_datos_mlb = {
         "park_factor": 1.02, "temperatura": "22°C", "viento": "5 mph cruzado", "linea_ou": 9.0,
         "apuestas_publico_fav": "75% con Yankees", "cuota_apertura": -150, "cuota_actual": -170, "rlm_detectado": False
     },
-    "Houston Astros vs New York Mets": {
-        "local": "Mets", "visitante": "Astros",
-        "abridor_loc": "Kodai Senga", "era_ab_loc": 3.10, "whip_ab_loc": 1.15, "xera_loc": 3.25, "fip_loc": 3.40,
-        "abridor_vis": "Framber Valdez", "era_ab_vis": 3.40, "whip_ab_vis": 1.22, "xera_vis": 3.50, "fip_vis": 3.65,
-        "bullpen_era_loc": 3.60, "bullpen_fatiga_loc": "BAJA",
-        "bullpen_era_vis": 3.80, "bullpen_fatiga_vis": "MODERADA",
-        "lesionados_vis": ["Kyle Tucker"], "lesionados_loc": ["Francisco Lindor"],
-        "wrc_lineup_vis": 110, "wrc_lineup_loc": 108,
+    "🔧 MODO MANUAL (Ingresar datos propios)": {
+        "local": "Equipo Local", "visitante": "Equipo Visitante",
+        "abridor_loc": "Pitcher Local", "era_ab_loc": 4.00, "whip_ab_loc": 1.20, "xera_loc": 4.00, "fip_loc": 4.00,
+        "abridor_vis": "Pitcher Visitante", "era_ab_vis": 4.00, "whip_ab_vis": 1.20, "xera_vis": 4.00, "fip_vis": 4.00,
+        "bullpen_era_loc": 4.00, "bullpen_fatiga_loc": "BAJA",
+        "bullpen_era_vis": 4.00, "bullpen_fatiga_vis": "BAJA",
+        "lesionados_vis": [], "lesionados_loc": [],
+        "wrc_lineup_vis": 100, "wrc_lineup_loc": 100,
         "umpire_tendencia": "Neutral (Zona estándar)",
-        "park_factor": 0.96, "temperatura": "24°C", "viento": "8 mph hacia adentro", "linea_ou": 7.5,
+        "park_factor": 1.00, "temperatura": "25°C", "viento": "0 mph", "linea_ou": 8.5,
         "apuestas_publico_fav": "50% Dividido", "cuota_apertura": -110, "cuota_actual": -110, "rlm_detectado": False
-    },
-    "Atlanta Braves vs Philadelphia Phillies": {
-        "local": "Phillies", "visitante": "Braves",
-        "abridor_loc": "Zack Wheeler", "era_ab_loc": 2.60, "whip_ab_loc": 0.98, "xera_loc": 2.50, "fip_loc": 2.70,
-        "abridor_vis": "Chris Sale", "era_ab_vis": 2.75, "whip_ab_vis": 1.01, "xera_vis": 2.65, "fip_vis": 2.80,
-        "bullpen_era_loc": 3.20, "bullpen_fatiga_loc": "BAJA",
-        "bullpen_era_vis": 3.30, "bullpen_fatiga_vis": "BAJA",
-        "lesionados_vis": ["Ronald Acuña Jr."], "lesionados_loc": ["Trea Turner"],
-        "wrc_lineup_vis": 112, "wrc_lineup_loc": 115,
-        "umpire_tendencia": "Under (Zona estricta para pitchers, -0.4 carreras)",
-        "park_factor": 1.00, "temperatura": "26°C", "viento": "3 mph calma", "linea_ou": 7.0,
-        "apuestas_publico_fav": "68% con Phillies", "cuota_apertura": -130, "cuota_actual": -115, "rlm_detectado": True
     }
 }
 
-# Extraemos los datos específicos del partido seleccionado por el usuario
-datos_juego = base_datos_mlb[partido_seleccionado]
+# --- 2. SELECCIÓN DEL PARTIDO ---
+opciones = list(base_datos_mlb.keys())
+seleccion = st.selectbox("🎯 Selecciona un partido del día o activa el Modo Manual:", opciones)
 
-# --- 3. BOTÓN DE PROCESAMIENTO ---
-if st.button("🔥 EJECUTAR ANÁLISIS PROFESIONAL", use_container_width=True):
+# Cargamos los datos por defecto según la selección
+datos_defecto = base_datos_mlb[seleccion]
+
+st.markdown("---")
+st.subheader("🛠️ Panel de Edición de Variables (Edita lo que quieras aquí abajo)")
+
+# --- 3. FORMULARIO INTERACTIVO (PERMITE EDICIÓN MANUAL SIEMPRE) ---
+# Usamos columnas para que se vea ordenado en el celular
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown("### 🏠 EQUIPO LOCAL")
+    eq_local = st.text_input("Nombre del Equipo Local:", datos_defecto["local"])
+    p_local = st.text_input("Pitcher Abridor Local:", datos_defecto["abridor_loc"])
+    era_loc = st.number_input("ERA Abridor Local:", value=datos_defecto["era_ab_loc"], format="%.2f")
+    whip_loc = st.number_input("WHIP Abridor Local:", value=datos_defecto["whip_ab_loc"], format="%.2f")
+    fip_loc = st.number_input("FIP Abridor Local:", value=datos_defecto["fip_loc"], format="%.2f")
+    bp_era_loc = st.number_input("Bullpen ERA Local:", value=datos_defecto["bullpen_era_loc"], format="%.2f")
+    bp_fatiga_loc = st.selectbox("Fatiga Bullpen Local:", ["BAJA", "MODERADA", "ALTA"], index=["BAJA", "MODERADA", "ALTA"].index(datos_defecto["bullpen_fatiga_loc"]))
+    wrc_loc = st.number_input("Fuerza Bateo Local (wRC+):", value=datos_defecto["wrc_lineup_loc"])
+
+with col2:
+    st.markdown("### 🚀 EQUIPO VISITANTE")
+    eq_vis = st.text_input("Nombre del Equipo Visitante:", datos_defecto["visitante"])
+    p_vis = st.text_input("Pitcher Abridor Visitante:", datos_defecto["abridor_vis"])
+    era_vis = st.number_input("ERA Abridor Visitante:", value=datos_defecto["era_ab_vis"], format="%.2f")
+    whip_vis = st.number_input("WHIP Abridor Visitante:", value=datos_defecto["whip_ab_vis"], format="%.2f")
+    fip_vis = st.number_input("FIP Abridor Visitante:", value=datos_defecto["fip_vis"], format="%.2f")
+    bp_era_vis = st.number_input("Bullpen ERA Visitante:", value=datos_defecto["bullpen_era_vis"], format="%.2f")
+    bp_fatiga_vis = st.selectbox("Fatiga Bullpen Visitante:", ["BAJA", "MODERADA", "ALTA"], index=["BAJA", "MODERADA", "ALTA"].index(datos_defecto["bullpen_fatiga_vis"]))
+    wrc_vis = st.number_input("Fuerza Bateo Visitante (wRC+):", value=datos_defecto["wrc_lineup_vis"])
+
+st.markdown("### 🏟️ Entorno, Líneas y Cuotas del Casino")
+col3, col4 = st.columns(2)
+with col3:
+    linea_ou = st.number_input("Línea de Over/Under del Casino:", value=datos_defecto["linea_ou"], step=0.5)
+    park_f = st.number_input("Factor de Estadio (Park Factor):", value=datos_defecto["park_factor"], format="%.2f")
+    umpire = st.text_input("Tendencia del Umpire:", datos_defecto["umpire_tendencia"])
+with col4:
+    pub_fav = st.text_input("Apuestas del Público:", datos_defecto["apuestas_publico_fav"])
+    c_apertura = st.number_input("Cuota Apertura:", value=datos_defecto["cuota_apertura"])
+    c_actual = st.number_input("Cuota Actual:", value=datos_defecto["cuota_actual"])
+    rlm_check = st.checkbox("¿Activar Alerta de Movimiento Inverso (RLM)?", value=datos_defecto["rlm_detectado"])
+
+# --- 4. EJECUCIÓN DEL PROCESAMIENTO ---
+st.markdown("---")
+if st.button("🔥 EJECUTAR ANÁLISIS PROFESIONAL CON ESTOS DATOS", use_container_width=True):
     
-    # El motor matemático dinámico lee las variables específicas del juego elegido
-    carreras_proyectadas_vis = (5.0 * (datos_juego["wrc_lineup_vis"]/100)) - (len(datos_juego["lesionados_vis"]) * 0.25) + (datos_juego["whip_ab_loc"] * 0.4)
-    carreras_proyectadas_loc = (4.2 * (datos_juego["wrc_lineup_loc"]/100)) - (len(datos_juego["lesionados_loc"]) * 0.25) + (datos_juego["whip_ab_vis"] * 0.3)
+    # El motor matemático procesa estrictamente lo que esté escrito en los cuadros de texto editables
+    carreras_proyectadas_vis = (5.0 * (wrc_vis/100)) + (whip_loc * 0.4)
+    carreras_proyectadas_loc = (4.2 * (wrc_loc/100)) + (whip_vis * 0.3)
     
-    # Ajuste multiplicador por estadio
-    carreras_proyectadas_vis *= datos_juego["park_factor"]
-    carreras_proyectadas_loc *= datos_juego["park_factor"]
+    # Multiplicador por estadio
+    carreras_proyectadas_vis *= park_f
+    carreras_proyectadas_loc *= park_f
     
-    # Simulación Matemática de Montecarlo (10,000 iteraciones en vivo)
+    # Simulación de Montecarlo (10,000 juegos usando los datos del formulario)
     sim_vis = np.random.poisson(carreras_proyectadas_vis, 10000)
     sim_loc = np.random.poisson(carreras_proyectadas_loc, 10000)
     
-    # Cálculos probabilísticos basados en la simulación
-    prob_ganador_vis = (np.sum(sim_vis > sim_loc) / 10000) * 10
+    prob_ganador_vis = (np.sum(sim_vis > sim_loc) / 10000) * 100
+    prob_ganador_loc = 100 - prob_ganador_vis
+    prob_over = (np.sum((sim_vis + sim_loc) > linea_ou) / 10000) * 100
+    
+    ganador_proyectado = eq_vis if prob_ganador_vis > prob_ganador_loc else eq_local
+    porcentaje_ganador = max(prob_ganador_vis, prob_gan
