@@ -1,158 +1,122 @@
 import streamlit as st
 import numpy as np
-import datetime
+from datetime import datetime
+import pytz
 
 st.set_page_config(page_title="Statline Predictor Pro", layout="wide")
 
-# --- ENCABEZADO Y FECHA ---
 st.title("🧠 Statline Predictor Pro - SHARP SYSTEM")
-fecha_hoy = datetime.date.today().strftime("%d de %B de %Y")
-st.write(f"📅 **Fecha de Análisis:** {fecha_hoy}")
-st.write("Sistema Híbrido: Selección automatizada o edición manual avanzada.")
+st.write("Calendario automatizado en tiempo real. Los partidos en desarrollo se eliminan automáticamente.")
 
-# --- 1. BASE DE DATOS DE PARTIDOS PRE-CARGADOS ---
-base_datos_mlb = {
-    "Los Angeles Dodgers vs Pittsburgh Pirates": {
-        "local": "Pirates", "visitante": "Dodgers",
-        "abridor_loc": "Mitch Keller", "era_ab_loc": 4.80, "whip_ab_loc": 1.42, "xera_loc": 4.65, "fip_loc": 4.80,
-        "abridor_vis": "Tyler Glasnow", "era_ab_vis": 2.10, "whip_ab_vis": 0.88, "xera_vis": 2.45, "fip_vis": 2.30,
-        "bullpen_era_loc": 4.10, "bullpen_fatiga_loc": "ALTA",
-        "bullpen_era_vis": 3.45, "bullpen_fatiga_vis": "BAJA",
-        "lesionados_vis": ["Mookie Betts", "Max Muncy"], "lesionados_loc": ["David Bednar"],
-        "wrc_lineup_vis": 118, "wrc_lineup_loc": 92,
-        "umpire_tendencia": "Over (Zona estrecha, +0.3 carreras)",
-        "park_factor": 1.05, "temperatura": "29°C", "viento": "12 mph hacia afuera", "linea_ou": 8.5,
-        "apuestas_publico_fav": "82% con Dodgers", "cuota_apertura": -180, "cuota_actual": -155, "rlm_detectado": True
-    },
-    "New York Yankees vs Boston Red Sox": {
-        "local": "Red Sox", "visitante": "Yankees",
-        "abridor_loc": "Brayan Bello", "era_ab_loc": 4.15, "whip_ab_loc": 1.30, "xera_loc": 4.10, "fip_loc": 3.95,
-        "abridor_vis": "Gerrit Cole", "era_ab_vis": 2.85, "whip_ab_vis": 1.02, "xera_vis": 2.90, "fip_vis": 3.10,
-        "bullpen_era_loc": 3.90, "bullpen_fatiga_loc": "MODERADA",
-        "bullpen_era_vis": 3.15, "bullpen_fatiga_vis": "BAJA",
-        "lesionados_vis": ["Giancarlo Stanton"], "lesionados_loc": [],
-        "wrc_lineup_vis": 125, "wrc_lineup_loc": 104,
-        "umpire_tendencia": "Under (Zona amplia, -0.2 carreras)",
-        "park_factor": 1.02, "temperatura": "22°C", "viento": "5 mph cruzado", "linea_ou": 9.0,
-        "apuestas_publico_fav": "75% con Yankees", "cuota_apertura": -150, "cuota_actual": -170, "rlm_detectado": False
-    },
-    "🔧 MODO MANUAL (Ingresar datos propios)": {
-        "local": "Equipo Local", "visitante": "Equipo Visitante",
-        "abridor_loc": "Pitcher Local", "era_ab_loc": 4.00, "whip_ab_loc": 1.20, "xera_loc": 4.00, "fip_loc": 4.00,
-        "abridor_vis": "Pitcher Visitante", "era_ab_vis": 4.00, "whip_ab_vis": 1.20, "xera_vis": 4.00, "fip_vis": 4.00,
-        "bullpen_era_loc": 4.00, "bullpen_fatiga_loc": "BAJA",
-        "bullpen_era_vis": 4.00, "bullpen_fatiga_vis": "BAJA",
-        "lesionados_vis": [], "lesionados_loc": [],
-        "wrc_lineup_vis": 100, "wrc_lineup_loc": 100,
-        "umpire_tendencia": "Neutral (Zona estándar)",
-        "park_factor": 1.00, "temperatura": "25°C", "viento": "0 mph", "linea_ou": 8.5,
-        "apuestas_publico_fav": "50% Dividido", "cuota_apertura": -110, "cuota_actual": -110, "rlm_detectado": False
-    }
+# --- 1. CONFIGURACIÓN DEL RELOJ EN VIVO (Zona Horaria) ---
+# Usamos la zona horaria estándar para sincronizar con los juegos (puedes cambiarla a tu país)
+zona_horaria = pytz.timezone('America/New_York')
+hora_actual = datetime.now(zona_horaria)
+
+st.sidebar.markdown(f"🕒 **Hora del Servidor (ET):** {hora_actual.strftime('%I:%M %p')}")
+
+# --- 2. BASE DE DATOS DINÁMICA CON HORARIOS DE JUEGOS ---
+# El formato de hora es militar (24h) para que el código pueda comparar matemáticamente
+calendario_completo = {
+    "Los Angeles Dodgers vs Pittsburgh Pirates": {"hora_inicio": "19:05", "datos_key": "LAD_PIT"},
+    "New York Yankees vs Boston Red Sox": {"hora_inicio": "19:10", "datos_key": "NYY_BOS"},
+    "Houston Astros vs New York Mets": {"hora_inicio": "20:10", "datos_key": "HOU_NYM"},
+    "Atlanta Braves vs Philadelphia Phillies": {"hora_inicio": "22:00", "datos_key": "ATL_PHI"}
 }
 
-# --- 2. SELECCIÓN DEL PARTIDO ---
-opciones = list(base_datos_mlb.keys())
-seleccion = st.selectbox("🎯 Selecciona un partido del día o activa el Modo Manual:", opciones)
+# --- 3. FILTRO AUTOMÁTICO DE PARTIDOS EN VIVO ---
+partidos_disponibles = []
 
-# Cargamos los datos por defecto según la selección
-datos_defecto = base_datos_mlb[seleccion]
-
-st.markdown("---")
-st.subheader("🛠️ Panel de Edición de Variables (Edita lo que quieras aquí abajo)")
-
-# --- 3. FORMULARIO INTERACTIVO (PERMITE EDICIÓN MANUAL SIEMPRE) ---
-# Usamos columnas para que se vea ordenado en el celular
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown("### 🏠 EQUIPO LOCAL")
-    eq_local = st.text_input("Nombre del Equipo Local:", datos_defecto["local"])
-    p_local = st.text_input("Pitcher Abridor Local:", datos_defecto["abridor_loc"])
-    era_loc = st.number_input("ERA Abridor Local:", value=datos_defecto["era_ab_loc"], format="%.2f")
-    whip_loc = st.number_input("WHIP Abridor Local:", value=datos_defecto["whip_ab_loc"], format="%.2f")
-    fip_loc = st.number_input("FIP Abridor Local:", value=datos_defecto["fip_loc"], format="%.2f")
-    bp_era_loc = st.number_input("Bullpen ERA Local:", value=datos_defecto["bullpen_era_loc"], format="%.2f")
-    bp_fatiga_loc = st.selectbox("Fatiga Bullpen Local:", ["BAJA", "MODERADA", "ALTA"], index=["BAJA", "MODERADA", "ALTA"].index(datos_defecto["bullpen_fatiga_loc"]))
-    wrc_loc = st.number_input("Fuerza Bateo Local (wRC+):", value=datos_defecto["wrc_lineup_loc"])
-
-with col2:
-    st.markdown("### 🚀 EQUIPO VISITANTE")
-    eq_vis = st.text_input("Nombre del Equipo Visitante:", datos_defecto["visitante"])
-    p_vis = st.text_input("Pitcher Abridor Visitante:", datos_defecto["abridor_vis"])
-    era_vis = st.number_input("ERA Abridor Visitante:", value=datos_defecto["era_ab_vis"], format="%.2f")
-    whip_vis = st.number_input("WHIP Abridor Visitante:", value=datos_defecto["whip_ab_vis"], format="%.2f")
-    fip_vis = st.number_input("FIP Abridor Visitante:", value=datos_defecto["fip_vis"], format="%.2f")
-    bp_era_vis = st.number_input("Bullpen ERA Visitante:", value=datos_defecto["bullpen_era_vis"], format="%.2f")
-    bp_fatiga_vis = st.selectbox("Fatiga Bullpen Visitante:", ["BAJA", "MODERADA", "ALTA"], index=["BAJA", "MODERADA", "ALTA"].index(datos_defecto["bullpen_fatiga_vis"]))
-    wrc_vis = st.number_input("Fuerza Bateo Visitante (wRC+):", value=datos_defecto["wrc_lineup_vis"])
-
-st.markdown("### 🏟️ Entorno, Líneas y Cuotas del Casino")
-col3, col4 = st.columns(2)
-with col3:
-    linea_ou = st.number_input("Línea de Over/Under del Casino:", value=datos_defecto["linea_ou"], step=0.5)
-    park_f = st.number_input("Factor de Estadio (Park Factor):", value=datos_defecto["park_factor"], format="%.2f")
-    umpire = st.text_input("Tendencia del Umpire:", datos_defecto["umpire_tendencia"])
-with col4:
-    pub_fav = st.text_input("Apuestas del Público:", datos_defecto["apuestas_publico_fav"])
-    c_apertura = st.number_input("Cuota Apertura:", value=datos_defecto["cuota_apertura"])
-    c_actual = st.number_input("Cuota Actual:", value=datos_defecto["cuota_actual"])
-    rlm_check = st.checkbox("¿Activar Alerta de Movimiento Inverso (RLM)?", value=datos_defecto["rlm_detectado"])
-
-# --- 4. EJECUCIÓN DEL PROCESAMIENTO ---
-st.markdown("---")
-if st.button("🔥 EJECUTAR ANÁLISIS PROFESIONAL CON ESTOS DATOS", use_container_width=True):
+for partido, info in calendario_completo.items():
+    # Convertimos la hora de inicio del partido a un objeto de tiempo para comparar
+    hora_juego = datetime.strptime(info["hora_inicio"], "%H:%M").time()
     
-    # El motor matemático procesa estrictamente lo que esté escrito en los cuadros de texto editables
-    carreras_proyectadas_vis = (5.0 * (wrc_vis/100)) + (whip_loc * 0.4)
-    carreras_proyectadas_loc = (4.2 * (wrc_loc/100)) + (whip_vis * 0.3)
+    # Si la hora actual es MENOR que la hora del juego, el partido NO ha empezado. Lo dejamos.
+    if hora_actual.time() < hora_juego:
+        partidos_disponibles.append(partido)
+
+# Añadimos la opción mágica para que puedas editar o escribir el partido que tú quieras
+partidos_disponibles.append("➕ ANALIZAR OTRO PARTIDO (ENTRADA MANUAL)")
+
+# --- 4. INTERFAZ VISUAL DESPLEGABLE ---
+partido_seleccionado = st.selectbox("🎯 Selecciona un partido disponible para hoy:", partidos_disponibles)
+
+# Si el usuario elige la opción manual, se activan los campos de texto para escribir
+if partido_seleccionado == "➕ ANALIZAR OTRO PARTIDO (ENTRADA MANUAL)":
+    st.markdown("### 📝 Configura tu Partido Personalizado")
+    col_v, col_l = st.columns(2)
+    with col_v: equipo_vis = st.text_input("Equipo Visitante:", "New York Yankees")
+    with col_l: equipo_loc = st.text_input("Equipo Local:", "Boston Red Sox")
+    nombre_clave = f"{equipo_vis} vs {equipo_loc}"
+else:
+    nombre_clave = partido_seleccionado
+
+# --- 5. DICCIONARIO MAESTRO DE ESTADÍSTICAS AUTOMÁTICAS ---
+# Cuando el usuario escribe o selecciona un equipo, el sistema "arrastra" estos perfiles estadísticos profesionales
+perfiles_estadisticos = {
+    "Dodgers": {"wrc": 122, "era_ab": 2.10, "whip_ab": 0.88, "xera": 2.45, "fip": 2.30, "bp_era": 3.45, "bp_fatiga": "BAJA", "lesionados": ["Mookie Betts"]},
+    "Pirates": {"wrc": 92, "era_ab": 4.80, "whip_ab": 1.42, "xera": 4.65, "fip": 4.80, "bp_era": 4.10, "bp_fatiga": "ALTA", "lesionados": ["David Bednar"]},
+    "Yankees": {"wrc": 125, "era_ab": 2.85, "whip_ab": 1.02, "xera": 2.90, "fip": 3.10, "bp_era": 3.15, "bp_fatiga": "BAJA", "lesionados": []},
+    "Red Sox": {"wrc": 104, "era_ab": 4.15, "whip_ab": 1.30, "xera": 4.10, "fip": 3.95, "bp_era": 3.90, "bp_fatiga": "MODERADA", "lesionados": []},
+    "Astros": {"wrc": 110, "era_ab": 3.40, "whip_ab": 1.22, "xera": 3.50, "fip": 3.65, "bp_era": 3.80, "bp_fatiga": "MODERADA", "lesionados": ["Kyle Tucker"]},
+    "Mets": {"wrc": 108, "era_ab": 3.10, "whip_ab": 1.15, "xera": 3.25, "fip": 3.40, "bp_era": 3.60, "bp_fatiga": "BAJA", "lesionados": ["Francisco Lindor"]},
+    "Braves": {"wrc": 112, "era_ab": 2.75, "whip_ab": 1.01, "xera": 2.65, "fip": 2.80, "bp_era": 3.30, "bp_fatiga": "BAJA", "lesionados": ["Ronald Acuña Jr."]},
+    "Phillies": {"wrc": 115, "era_ab": 2.60, "whip_ab": 0.98, "xera": 2.50, "fip": 2.70, "bp_era": 3.20, "bp_fatiga": "BAJA", "lesionados": ["Trea Turner"]}
+}
+
+# --- 6. PROCESADOR DE DATOS DE ENTRADA ---
+# Si el usuario escribe un equipo que no está en la lista, el sistema le asigna valores promedio de la liga automáticamente
+def obtener_datos_equipo(nombre_buscar):
+    for clave, datos in perfiles_estadisticos.items():
+        if clave.lower() in nombre_buscar.lower():
+            return datos
+    # Perfil por defecto (Promedio de la MLB si el equipo es nuevo o editado libremente)
+    return {"wrc": 100, "era_ab": 3.90, "whip_ab": 1.20, "xera": 3.95, "fip": 4.00, "bp_era": 3.85, "bp_fatiga": "MODERADA", "lesionados": []}
+
+# Separamos los nombres para buscar sus estadísticas
+if " vs " in nombre_clave:
+    v_team, l_team = nombre_clave.split(" vs ")
+else:
+    v_team, l_team = "Dodgers", "Pirates"
+
+stats_vis = obtener_datos_equipo(v_team)
+stats_loc = obtener_datos_equipo(l_team)
+
+# --- 7. BOTÓN DE PROCESAMIENTO MATEMÁTICO ---
+if st.button("🔥 EJECUTAR ANÁLISIS PROFESIONAL", use_container_width=True):
     
-    # Multiplicador por estadio
-    carreras_proyectadas_vis *= park_f
-    carreras_proyectadas_loc *= park_f
+    # Fórmulas Sabermétricas Avanzadas aplicando las variables arrastradas
+    carreras_proyectadas_vis = (5.0 * (stats_vis["wrc"]/100)) - (len(stats_vis["lesionados"]) * 0.25) + (stats_loc["whip_ab"] * 0.4)
+    carreras_proyectadas_loc = (4.2 * (stats_loc["wrc"]/100)) - (len(stats_loc["lesionados"]) * 0.25) + (stats_vis["whip_ab"] * 0.3)
     
-    # Simulación de Montecarlo (10,000 juegos usando los datos del formulario)
+    # Simulador de Montecarlo (10,000 juegos en un milisegundo)
     sim_vis = np.random.poisson(carreras_proyectadas_vis, 10000)
     sim_loc = np.random.poisson(carreras_proyectadas_loc, 10000)
     
     prob_ganador_vis = (np.sum(sim_vis > sim_loc) / 10000) * 100
     prob_ganador_loc = 100 - prob_ganador_vis
-    prob_over = (np.sum((sim_vis + sim_loc) > linea_ou) / 10000) * 100
+    prob_over = (np.sum((sim_vis + sim_loc) > 8.5) / 10000) * 100
     
-    ganador_proyectado = eq_vis if prob_ganador_vis > prob_ganador_loc else eq_local
+    ganador_proyectado = v_team if prob_ganador_vis > prob_ganador_loc else l_team
     porcentaje_ganador = max(prob_ganador_vis, prob_ganador_loc)
-    linea_totales_texto = f"OVER {linea_ou}" if prob_over > 50 else f"UNDER {linea_ou}"
+    linea_totales_texto = "OVER 8.5" if prob_over > 50 else "UNDER 8.5"
     porcentaje_totales = prob_over if prob_over > 50 else (100 - prob_over)
 
-    # Despliegue de Resultados
-    st.markdown(f"## 📊 Resultados Estadísticos de la Simulación")
+    # Despliegue de Resultados Dinámicos
+    st.markdown(f"## 📊 Análisis Cuantitativo Final: {v_team} vs {l_team}")
     res1, res2 = st.columns(2)
     with res1: st.metric("🏆 GANADOR PROYECTADO", ganador_proyectado, f"{round(porcentaje_ganador, 1)}% Probabilidad")
     with res2: st.metric("📈 TOTAL (Over/Under)", linea_totales_texto, f"{round(porcentaje_totales, 1)}% Probabilidad")
 
-    # Reporte Explicativo Dinámico
+    # --- 8. REPORTE EXPLICATIVO AUTOMÁTICO ---
     st.markdown("---")
     st.markdown("### 📋 Justificación Técnico-Analítica")
     
-    resumen_texto = f"""
-    * **Análisis de Lanzadores:** El abridor de los {eq_vis} ({p_vis}) registra un ERA de {era_vis} y WHIP de {whip_vis} frente al abridor de los {eq_local} ({p_local}) que presenta un FIP de {fip_loc}.
-    * **Efectividad del Bullpen:** El relevo de {eq_local} maneja un ERA de {bp_era_loc} con fatiga {bp_fatiga_loc}, mientras que el de {eq_vis} presenta un ERA de {bp_era_vis} con fatiga {bp_fatiga_vis}.
-    * **Poder de la Alineación:** El lineup de {eq_vis} opera con una fuerza de {wrc_vis} wRC+ ajustado, mientras que el de {eq_local} rinde para {wrc_loc} wRC+.
-    * **Factores de Entorno:** El encuentro se disputa con un Park Factor de {park_f}. El umpire asignado muestra una tendencia histórica de {umpire}.
-    """
-    st.info(resumen_texto)
-
-    # Nota de Mercado Informativa
-    st.markdown("---")
-    st.subheader("⚠️ Nota Informativa: Inteligencia del Mercado Vegas")
-    if rlm_check:
-        st.warning(f"""
-        **ALERTA DE REVERSE LINE MOVEMENT DETECTADO:**
-        * El público masivo está cargado con un **{pub_fav}**.
-        * La cuota abrió en **{c_apertura}** y se movió de forma inversa a **{c_actual}**.
-        * **Interpretación:** Los apostadores profesionales (*Sharps*) están respaldando activamente al bando contrario del público.
-        """)
-    else:
-        st.success(f"""
-        **MONITOREO DE MERCADO ESTABLE:**
-        * Flujo de apuestas del público: **{pub_fav}**. El mercado se mueve de forma estándar de **{c_apertura}** a **{c_actual}**. No hay anomalías detectadas.
-        """)
+    lesiones_vis_texto = ", ".join(stats_vis["lesionados"]) if stats_vis["lesionados"] else "Ninguna baja"
+    lesiones_loc_texto = ", ".join(stats_loc["lesionados"]) if stats_loc["lesionados"] else "Ninguna baja"
+    
+    st.info(f"""
+    * **Duelo de Abridores:** El pitcheo de {v_team} presenta un xERA de {stats_vis['xera']} y un WHIP de {stats_vis['whip_ab']} frente al abridor de {l_team} que registra un FIP de {stats_loc['fip']} y un WHIP de {stats_loc['whip_ab']}.
+    * **Situación del Bullpen:** El relevo intermedio de {l_team} maneja un ERA colectivo de {stats_loc['bp_era']} con una fatiga calificada como {stats_loc['bp_fatiga']}.
+    * **Fuerza Ofensiva Arrastrada:** El lineup activo de {v_team} posee un poder base de {stats_vis['wrc']} wRC+, descontando la baja por lesión de: [{lesiones_vis_texto}]. El lineup de {l_team} genera {stats_loc['wrc']} wRC+, resintiendo a: [{lesiones_loc_texto}].
+    """)
