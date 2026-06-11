@@ -54,7 +54,7 @@ DICCIONARIO_SISTEMA = {
         "analisis_tec": "Análisis Técnico", "volver": "VOLVER AL CALENDARIO", "ops": "OPS Colectivo", "wrc": "wRC+ Ajustado",
         "iso": "ISO (Poder Aislado)", "babip": "BABIP de Equipo", "hard_hit": "Hard Hit Rate %", "barrel": "Barrel % Colectivo",
         "xera": "xERA Proyectada", "xfip": "xFIP Estabilizado", "whip": "WHIP General", "b_era": "ERA del Bullpen",
-        "matriz_coef": "Matriz de Coeficientes Sabermétricos Avanzados", "marcador_proy": "Marcador Proyectado",
+        "matriz_coef": "Matriz de Coeficientes Sabermétricos Avançados", "marcador_proy": "Marcador Proyectado",
         "certeza": "Certeza Algorítmica", "historico_anot": "Historial Selectivo de Anotaciones", "sin_carreras": "No se registran carreras procesadas.",
         "pizarra": "Pizarra Oficial (Linescore)", "conteo": "CONTEO", "outs": "Outs", "ocupacion": "Ocupación de Almohadillas"
     },
@@ -101,9 +101,9 @@ DICCIONARIO_SISTEMA = {
         "titulo": "SISTEMA QUANTISTICO SHARP", "subtitulo": "Intelligenza Artificiale e Analisi di Baseball di Élite",
         "calendario": "Calendario", "partido_destacado": "PARTITA IN EVIDENZA DEL GIORNO", "prob_victoria": "Probabilità di Vittoria",
         "prediccion": "Proiezione Sharp", "en_vivo": "IN DIRETTA", "finalizado": "TERMINATO", "retrasado": "RITARDATO",
-        "proximo": "PROSSIMO", "soporte": "Supporto Quantistico", "enviar": "Invia", "mensaje_placeholder": "Scrivi un messaggio...",
+        "proximo": "PROSSIMO", "soporte": "Supporto Quantum", "enviar": "Invia", "mensaje_placeholder": "Scrivi un messaggio...",
         "jornada": "Partite Totali", "monitoreo": "Monitoraggio Live", "finalizados": "Concluse", "no_juegos": "Nessun match analitico registrato per questa data.",
-        "analisis_tec": "Anaisi Tecnica", "volver": "TORNA AL CALENDARIO", "ops": "OPS Collettivo", "wrc": "wRC+ Regolato",
+        "analisis_tec": "Analisi Tecnica", "volver": "TORNA AL CALENDARIO", "ops": "OPS Collettivo", "wrc": "wRC+ Regolato",
         "iso": "ISO (Potenza Isolata)", "babip": "BABIP di Squadra", "hard_hit": "Hard Hit Rate %", "barrel": "Barrel % Collettivo",
         "xera": "xERA Proiettata", "xfip": "xFIP Stabilizzato", "whip": "WHIP Generale", "b_era": "ERA del Bullpen",
         "matriz_coef": "Matrice dei Coefficienti Sabermetrici Avanzati", "marcador_proy": "Punteggio Proiettato",
@@ -147,7 +147,7 @@ DICCIONARIO_SISTEMA = {
         "xera": "예측 xERA", "xfip": "안정화 xFIP", "whip": "종합 WHIP", "b_era": "불펜 ERA",
         "matriz_coef": "고급 세이버메트릭스 계수 매트릭스", "marcador_proy": "예측 스코어",
         "certeza": "알고리즘 확실성", "historico_anot": "선택적 득점 플레이 로그", "sin_carreras": "처리된 득점이 없습니다.",
-        "pizarra": "공식 라인스코어 보드", "conteo": "카운트", "outs": "아웃", "ocupacion": "주자 상황"
+        "pizarra": "공식 라인스코어 보드", "conteo": "카운트", "outs": "아웃", "주자 상황": "주자 상황"
     }
 }
 
@@ -216,204 +216,128 @@ st.markdown(f"""
     }}
 
     .sport-match-card {{
-        background: rgba(17, 24, 39, 0.55);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid {css_border};
-        border-radius: 20px;
-        padding: 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-        overflow: hidden;
-        animation: fadeIn 0.5s ease-out;
-    }}
-    .sport-match-card:hover {{
-        transform: translateY(-5px) scale(1.01);
-        border-color: rgba(37, 99, 235, 0.4);
-        box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
+        background: rgba(17, 24, 39, 0.55) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border: 1px solid {css_border} !important;
+        border-radius: 20px !important;
+        padding: 24px !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25) !important;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        position: relative !important;
+        overflow: hidden !important;
+        display: block !important;
     }}
     
     .featured-match-card {{
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(17, 24, 39, 0.7) 100%);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 2px solid {css_accent};
-        border-radius: 24px;
-        padding: 30px;
-        margin-bottom: 28px;
-        box-shadow: 0 25px 50px rgba(37, 99, 235, 0.25);
-        position: relative;
-        overflow: hidden;
-        animation: pulseGlow 3s infinite alternate;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(17, 24, 39, 0.7) 100%) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 2px solid {css_accent} !important;
+        border-radius: 24px !important;
+        padding: 30px !important;
+        margin-bottom: 28px !important;
+        box-shadow: 0 25px 50px rgba(37, 99, 235, 0.25) !important;
+        position: relative !important;
+        overflow: hidden !important;
+        display: block !important;
+        animation: pulseGlow 3s infinite alternate !important;
     }}
+    
     .featured-tag {{
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        background: linear-gradient(90deg, {css_accent}, #4f46e5);
-        color: white;
-        font-size: 0.75rem;
-        font-weight: 800;
-        padding: 6px 14px;
-        border-radius: 30px;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        position: absolute !important;
+        top: 14px !important;
+        right: 14px !important;
+        background: linear-gradient(90deg, {css_accent}, #4f46e5) !important;
+        color: white !important;
+        font-size: 0.75rem !important;
+        font-weight: 800 !important;
+        padding: 6px 14px !important;
+        border-radius: 30px !important;
+        letter-spacing: 0.5px !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
     }}
 
     .card-meta {{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        padding-bottom: 12px;
-        margin-bottom: 16px;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 16px !important;
     }}
     .team-row {{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin: 14px 0;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin: 14px 0 !important;
     }}
     .team-info-side {{
-        display: flex;
-        align-items: center;
-        gap: 16px;
+        display: flex !important;
+        align-items: center !important;
+        gap: 16px !important;
     }}
     .team-logo-frame {{
-        width: 44px;
-        height: 44px;
-        object-fit: contain;
-        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        width: 44px !important;
+        height: 44px !important;
+        object-fit: contain !important;
     }}
     .team-name-string {{
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: {css_text};
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+        color: {css_text} !important;
     }}
     .score-display-string {{
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 2rem;
-        font-weight: 800;
-        color: {css_text};
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        color: {css_text} !important;
     }}
     .favorite-dot {{
-        width: 6px;
-        height: 6px;
-        background-color: {css_sport};
-        border-radius: 50%;
-        display: inline-block;
-        box-shadow: 0 0 8px {css_sport};
-        margin-left: 8px;
+        width: 6px !important;
+        height: 6px !important;
+        background-color: {css_sport} !important;
+        border-radius: 50% !important;
+        display: inline-block !important;
+        box-shadow: 0 0 8px {css_sport} !important;
+        margin-left: 8px !important;
     }}
 
     .status-pill {{
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 30px;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 0.8rem !important;
+        font-weight: 700 !important;
+        padding: 4px 10px !important;
+        border-radius: 30px !important;
     }}
-    .status-live {{ background: rgba(16, 185, 129, 0.15); color: {css_sport}; border: 1px solid rgba(16, 185, 129, 0.3); }}
-    .status-final {{ background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }}
-    .status-delayed {{ background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }}
-    .status-upcoming {{ background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }}
+    .status-live {{ background: rgba(16, 185, 129, 0.15) !important; color: {css_sport} !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; }}
+    .status-final {{ background: rgba(239, 68, 68, 0.15) !important; color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3) !important; }}
+    .status-delayed {{ background: rgba(245, 158, 11, 0.15) !important; color: #f59e0b !important; border: 1px solid rgba(245, 158, 11, 0.3) !important; }}
+    .status-upcoming {{ background: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; }}
     
     .beacon-live {{
-        width: 6px; height: 6px; background-color: {css_sport}; border-radius: 50%;
-        animation: beaconPulse 1s infinite alternate;
+        width: 6px !important; height: 6px !important; background-color: {css_sport} !important; border-radius: 50% !important;
+        animation: beaconPulse 1s infinite alternate !important;
     }}
 
     .card-footer-metrics {{
-        margin-top: 16px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255,255,255,0.05);
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.85rem;
-        color: #9ca3af;
-    }}
-
-    .chat-bubble-trigger {{
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, {css_accent} 0%, #4f46e5 100%);
-        border-radius: 50%;
-        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        z-index: 999999;
-        transition: transform 0.3s ease;
-    }}
-    .chat-bubble-trigger:hover {{ transform: scale(1.1); }}
-    .chat-indicator {{
-        position: absolute;
-        top: 2px;
-        right: 2px;
-        width: 12px;
-        height: 12px;
-        background-color: {css_sport};
-        border-radius: 50%;
-        border: 2px solid {css_bg};
+        margin-top: 16px !important;
+        padding-top: 12px !important;
+        border-top: 1px solid rgba(255,255,255,0.05) !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        font-size: 0.85rem !important;
+        color: #9ca3af !important;
     }}
     
-    .chat-modal-window {{
-        position: fixed;
-        bottom: 105px;
-        right: 30px;
-        width: 360px;
-        height: 480px;
-        background: #111827;
-        border: 1px solid {css_border};
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        z-index: 999999;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }}
-    .chat-header-bar {{
-        background: linear-gradient(90deg, #1f2937, #111827);
-        padding: 16px;
-        border-bottom: 1px solid {css_border};
-        font-weight: 700;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }}
-    .chat-body-stream {{
-        flex: 1;
-        padding: 16px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }}
-    .chat-bubble-msg {{
-        padding: 10px 14px;
-        border-radius: 14px;
-        font-size: 0.85rem;
-        max-width: 80%;
-    }}
-    .msg-sistema {{ background: rgba(255,255,255,0.05); color: {css_text}; align-self: flex-start; }}
-    .msg-usuario {{ background: {css_accent}; color: white; align-self: flex-end; }}
-    .chat-footer-input {{
-        padding: 12px;
-        border-top: 1px solid {css_border};
-        background: #1f2937;
+    .premium-green-text {{
+        color: #10b981 !important;
+        font-weight: 700 !important;
     }}
 
-    @keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(10px); }} to {{ opacity: 1; transform: translateY(0); }} }}
-    @keyframes slideUp {{ from {{ opacity: 0; transform: translateY(30px); }} to {{ opacity: 1; transform: translateY(0); }} }}
     @keyframes beaconPulse {{ from {{ transform: scale(0.9); opacity: 0.6; }} to {{ transform: scale(1.2); opacity: 1; }} }}
     @keyframes pulseGlow {{
         from {{ box-shadow: 0 25px 50px rgba(37, 99, 235, 0.15); border-color: rgba(37, 99, 235, 0.7); }}
@@ -678,12 +602,12 @@ if st.session_state.vista_actual == "dashboard":
             dot_v = "<span class='favorite-dot'></span>" if pred["fav"] == "VIS" else ""
             dot_l = "<span class='favorite-dot'></span>" if pred["fav"] == "LOC" else ""
             
-            # --- MEJORA CRÍTICA EXCLUSIVA: SANITIZACIÓN ABSOLUTA DE CONTENEDORES ---
             label_probabilidad = txt('prob_victoria')
             siglas_favorito = juego['vis_siglas'] if pred['fav'] == "VIS" else juego['loc_siglas']
             porcentaje_favorito = pred['prob_v'] if pred['fav'] == "VIS" else pred['prob_l']
             
-            st.markdown(f"""
+            # --- BLINDAJE ABSOLUTO E INYECCIÓN UNIFICADA DEL CONTENEDOR MAESTRO ---
+            bloque_tarjeta_completo = f"""
                 <div class='{card_class}'>
                     {tag_destacado_html}
                     <div class='card-meta'>
@@ -706,10 +630,11 @@ if st.session_state.vista_actual == "dashboard":
                     </div>
                     <div class='card-footer-metrics'>
                         <div>💡 Proyección: <b>{juego['vis_siglas']} {pred['runs_v']} - {pred['runs_l']} {juego['loc_siglas']}</b></div>
-                        <div>📊 {label_probabilidad}: <span style='color:#10b981; font-weight:700;'>{siglas_favorito} {porcentaje_favorito}%</span></div>
+                        <div>📊 {label_probabilidad}: <span class='premium-green-text'>{siglas_favorito} {porcentaje_favorito}%</span></div>
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
+            """
+            st.markdown(bloque_tarjeta_completo, unsafe_allow_html=True)
             
             c_b1, c_b2 = st.columns(2)
             with c_b1:
