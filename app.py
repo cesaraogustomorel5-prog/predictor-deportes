@@ -75,14 +75,14 @@ DICCIONARIO_SISTEMA = {
     },
     "Francés": {
         "titulo": "SYSTÈME QUANTIQUE SHARP", "subtitulo": "Intelligence Artificielle & Analytique de Baseball d'Élite",
-        "calendario": "Calendrier", "partido_destacado": "MATCH VEDETTE DU JOUR", "prob_victoria": "Probabilité de Victoire",
+        "calendrier": "Calendrier", "partido_destacado": "MATCH VEDETTE DU JOUR", "prob_victoria": "Probabilité de Victoire",
         "prediccion": "Projection Sharp", "en_vivo": "EN DIRECT", "finalizado": "TERMINÉ", "retrasado": "RETARDÉ",
         "proximo": "À VENIR", "soporte": "Support Quantique", "enviar": "Envoyer", "mensaje_placeholder": "Écrivez un message...",
         "jornada": "Matchs Totaux", "monitoreo": "Suivi en Direct", "finalizados": "Terminés", "no_juegos": "Aucun match analytique enregistré pour cette date.",
         "analisis_tec": "Analyse Technique", "volver": "RETOUR AU CALENDRIER", "ops": "OPS Collectif", "wrc": "wRC+ Ajusté",
         "iso": "ISO (Puissance Isolée)", "babip": "BABIP de l'Équipe", "hard_hit": "Hard Hit Rate %", "barrel": "Barrel % Collectif",
         "xera": "xERA Projetée", "xfip": "xFIP Stabilisé", "whip": "WHIP Général", "b_era": "ERA du Bullpen",
-        "matrice des Coefficients Sabermétriques Avancés": "Matrice des Coefficients Sabermétriques Avancés", "marcador_proy": "Score Projeté",
+        "matriz_coef": "Matrice des Coefficients Sabermétriques Avancés", "marcador_proy": "Score Projeté",
         "certeza": "Certitude Algorithmique", "historico_anot": "Historique Sélectif des Points", "sin_carreras": "Aucun point traité pour le moment.",
         "pizarra": "Affichage Officiel du Score", "conteo": "COMPTE", "outs": "Retraits", "ocupacion": "Situation des Buts",
         "idioma_lbl": "Langue du Système", "adjuntar": "Joindre Médias/Fichiers", "tema_control": "Changer le Thème Visuel"
@@ -107,7 +107,7 @@ DICCIONARIO_SISTEMA = {
         "prediccion": "Proiezione Sharp", "en_vivo": "IN DIRETTA", "finalizado": "TERMINATO", "retrasado": "RITARDATO",
         "proximo": "PROSSIMO", "soporte": "Supporto Quantum", "enviar": "Invia", "mensaje_placeholder": "Scrivi un messaggio...",
         "jornada": "Partite Totali", "monitoreo": "Monitoraggio Live", "finalizados": "Concluse", "no_juegos": "Nessun match analitico registrato per questa data.",
-        "analisis_tec": "Analisi Tecnica", "volver": "TORNA AL CALENDARIO", "ops": "OPS Collettivo", "wrc": "wRC+ Regolato",
+        "analisis_tec": "Anaisi Tecnica", "volver": "TORNA AL CALENDARIO", "ops": "OPS Collettivo", "wrc": "wRC+ Regolato",
         "iso": "ISO (Potenza Isolata)", "babip": "BABIP di Squadra", "hard_hit": "Hard Hit Rate %", "barrel": "Barrel % Collettivo",
         "xera": "xERA Proiettata", "xfip": "xFIP Stabilizzato", "whip": "WHIP Generale", "b_era": "ERA del Bullpen",
         "matriz_coef": "Matrice dei Coefficienti Sabermetrici Avanzati", "marcador_proy": "Punteggio Proiettato",
@@ -230,7 +230,7 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-    /* CARDS BLINDADAS CONTRA ERRORES DE TEXTO CRUDO */
+    /* CARDS BLINDADAS CONTRA ERRORES */
     .sport-match-card {{
         background: {css_card} !important;
         border: 1px solid {css_border} !important;
@@ -345,13 +345,13 @@ st.markdown(f"""
         font-weight: 700 !important;
     }}
 
-    /* INTERFAZ DEL CHAT DE SOPORTE */
+    /* CHAT UX */
     .msg-usuario {{
         background: {css_accent};
         color: white;
         padding: 12px 16px;
         border-radius: 16px 16px 4px 16px;
-        margin-left: 20%;
+        margin-left: 15%;
         text-align: right;
     }}
     .msg-sistema {{
@@ -359,7 +359,7 @@ st.markdown(f"""
         color: {css_text};
         padding: 12px 16px;
         border-radius: 16px 16px 16px 4px;
-        margin-right: 20%;
+        margin-right: 15%;
         text-align: left;
     }}
     </style>
@@ -580,28 +580,8 @@ if cartelera_total:
     else: id_juego_destacado = cartelera_total[0]["id_juego"]
 
 # =====================================================================
-# INTERFAZ FLOTANTE: CAMBIO TEMA Y VOLVER ATRÁS NATIVO
+# INTERFAZ DE BOTONES COMPLEMENTARIOS (MODO CLARO/OSCURO Y VOLVER)
 # =====================================================================
-st.markdown("""
-    <style>
-    .quantum-floating-bar {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 10px 16px;
-        border-radius: 40px;
-        z-index: 999999;
-        display: flex;
-        gap: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# Renderizador de controles de la barra flotante usando columnas nativas de Streamlit en Sidebar/Main
 with st.sidebar:
     st.markdown(f"### 🛠️ UI Quick Controls")
     col_theme, col_back = st.columns(2)
@@ -670,7 +650,7 @@ if st.session_state.vista_actual == "dashboard":
             proj_v = str(pred['runs_v'])
             proj_l = str(pred['runs_l'])
             
-            # Unificación sin caracteres dinámicos complejos internos
+            # Construcción Blindada sin interferencia de comillas dinámicas internas
             bloque_tarjeta_completo = f"""
                 <div class="{card_class}">
                     {tag_destacado_html}
@@ -768,7 +748,7 @@ elif st.session_state.vista_actual == "pronostico":
     st.dataframe(dataset_limpio, use_container_width=True, hide_index=True)
 
 # =====================================================================
-# MODULO 7: CHAT DE SOPORTE INTERACTIVO MULTIMEDIA (PIPELINE)
+# MODULO 7: CHAT DE SOPORTE INTERACTIVO MULTIMEDIA (CORREGIDO)
 # =====================================================================
 with st.sidebar:
     st.markdown("---")
@@ -786,25 +766,28 @@ with st.sidebar:
         if "meta_adjunto" in msg:
             st.caption(f"📎 Archivo: {msg['meta_adjunto']}")
 
-    # Formulario unificado de entrada e ingesta de archivos
+    # SOLUCIÓN AL TYPEERROR: El file_uploader se ejecuta FUERA del formulario
+    archivo_usuario = st.file_uploader(txt("adjuntar"), type=["png", "jpg", "mp4", "mov", "csv", "txt", "pdf"], label_visibility="visible")
+
+    # El formulario ahora procesa los strings de manera limpia y segura
     with st.form("quantum_chat_form", clear_on_submit=True):
         input_texto = st.text_input("Chat Msg", placeholder=txt("mensaje_placeholder"), label_visibility="collapsed")
-        archivo_usuario = st.file_uploader(txt("adjuntar"), type=["png", "jpg", "mp4", "mov", "csv", "txt", "pdf"], label_visibility="visible")
         bot_enviar = st.form_submit_button(txt("enviar"), use_container_width=True)
         
         if bot_enviar and (input_texto or archivo_usuario):
             stamp = datetime.now(ZONA_HORARIA).strftime('%I:%M %p')
             nombre_archivo = archivo_usuario.name if archivo_usuario is not None else None
             
-            # Añadir mensaje de usuario
-            msg_u = {"origen": "usuario", "texto": input_texto if input_texto else "[Archivo Adjunto]", "timestamp": stamp}
-            if nombre_archivo: msg_u["meta_adjunto"] = nombre_archivo
+            # Registrar mensaje del usuario en el historial
+            msg_u = {"origen": "usuario", "texto": input_texto if input_texto else f"[Fichero: {nombre_archivo}]", "timestamp": stamp}
+            if nombre_archivo: 
+                msg_u["meta_adjunto"] = nombre_archivo
             st.session_state.chat_historial.append(msg_u)
             
-            # Generar respuesta adaptativa del Agente Cuántico
-            respuesta_bot = "Recibido. Analizando los vectores de tu solicitud en tiempo real."
+            # Respuesta simulada inteligente por el Agente Cuántico
+            respuesta_bot = "Mensaje de texto recibido por la IA. Optimizando respuesta analítica."
             if nombre_archivo:
-                respuesta_bot = f"He recibido correctamente tu archivo '{nombre_archivo}'. El motor Sabermétrico está procesando la captura/data para validar anomalías estructurales."
+                respuesta_bot = f"Fichero '{nombre_archivo}' indexado con éxito. Ejecutando escaneo cuántico en paralelo para identificar patrones sabermétricos."
                 
             st.session_state.chat_historial.append({
                 "origen": "sistema",
