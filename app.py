@@ -121,7 +121,9 @@ for nombre, info in partidos_api.items():
     if fecha_hoy.time() < info["hora"] and info["status"] == "Preview":
         opciones_desplegable.append(nombre)
 
-opciones_desplegable.append("➕ SELECCIÓN MANUAL DESDE LA LISTA OFICIAL")
+# Lógica condicional solicitada para cambiar el mensaje si el casillero se queda vacío
+if not opciones_desplegable:
+    opciones_desplegable = ["🚫 NO HAY PARTIDOS DISPONIBLES POR HOY"]
 
 # --- DESPLIEGUE EN PANTALLA ---
 st.markdown(f"### 🗓️ Calendario Activo: {fecha_hoy.strftime('%d')} de {mes_espanol}, {fecha_hoy.strftime('%Y')}")
@@ -134,8 +136,8 @@ for nombre, info in partidos_api.items():
 partido_seleccionado = st.selectbox("🎯 Selecciona un partido del día:", opciones_desplegable)
 
 # --- CONFIGURACIÓN DE APARTADO LOCAL Y VISITANTE ---
-if partido_seleccionado == "➕ SELECCIÓN MANUAL DESDE LA LISTA OFICIAL":
-    st.markdown("#### 🛠️ Panel de Configuración Personalizada")
+if partido_seleccionado == "🚫 NO HAY PARTIDOS DISPONIBLES POR HOY":
+    st.markdown("#### 🛠️ Panel de Configuración Manual")
     col_input1, col_input2 = st.columns(2)
     with col_input1:
         st.markdown("**VISITANTE**")
@@ -161,18 +163,17 @@ if equipo_loc_final and equipo_loc_final != "-- Seleccionar --" and not error_de
 
 # --- 7. BASE DE DATOS DIARIA (LAS 13 VARIABLES PROFESIONALES SOLICITADAS) ---
 def obtener_analitica_diaria_mlb(nombre_equipo):
-    # Diccionario maestro estructurado con datos basados 100% en rendimiento
     datos_maestros = {
         "Los Angeles Dodgers": {
-            "era_ab": 2.10, "whip_ab": 0.88, "xera": 2.45, "fip": 2.30, "k_bb": 4.1, # 1. Abridor
-            "bp_era": 3.45, "bp_whip": 1.12, "bp_uso": 0.90, "bp_descanso": "ÓPTIMO", # 2. Bullpen
-            "bajas": ["Mookie Betts"], "lineup_status": "CONFIRMADA", # 3. Alineación e Lesionados
-            "carreras_p": 5.4, "avg": .258, "ops": .790, "wrc": 122, # 4. Ofensiva
-            "vs_rhp": 124, "vs_lhp": 118, # 5. Splits de pitcheo derecho/zurdo
-            "last10": "7-3", "descanso_dias": 1, # 6 y 8. Estado de forma y Descanso/Calendario
-            "clima_wind": 12, "clima_temp": 74, "park_factor": 1.05, # 7. Clima e Estadio
-            "cuota_linea": -165, "umpire_strike_zone": -0.15, # 9 y 12. Cuotas e Umpire
-            "bp_split_lhp": 3.10, "bp_split_rhp": 3.50 # 13. Splits Relevistas LHP/RHP
+            "era_ab": 2.10, "whip_ab": 0.88, "xera": 2.45, "fip": 2.30, "k_bb": 4.1,
+            "bp_era": 3.45, "bp_whip": 1.12, "bp_uso": 0.90, "bp_descanso": "ÓPTIMO",
+            "bajas": ["Mookie Betts"], "lineup_status": "CONFIRMADA",
+            "carreras_p": 5.4, "avg": .258, "ops": .790, "wrc": 122,
+            "vs_rhp": 124, "vs_lhp": 118,
+            "last10": "7-3", "descanso_dias": 1,
+            "clima_wind": 12, "clima_temp": 74, "park_factor": 1.05,
+            "cuota_linea": -165, "umpire_strike_zone": -0.15,
+            "bp_split_lhp": 3.10, "bp_split_rhp": 3.50
         },
         "Pittsburgh Pirates": {
             "era_ab": 4.80, "whip_ab": 1.42, "xera": 4.65, "fip": 4.80, "k_bb": 2.2,
@@ -201,40 +202,32 @@ def obtener_analitica_diaria_mlb(nombre_equipo):
 # --- 8. PROCESADOR Y SIMULACIÓN EN TIEMPO REAL ---
 if not error_detectado and equipo_vis_final and equipo_loc_final and equipo_vis_final != "-- Seleccionar --" and equipo_loc_final != "-- Seleccionar --":
     
-    # BOTÓN EXACTO SOLICITADO PARA GENERAR EXCELENTE CONFIANZA
     if st.button("⚡ ACTIVAR MOTOR QUANT: SIMULAR CON 98.7% DE PRECISIÓN ESTADÍSTICA", use_container_width=True):
         
         v_stats = obtener_analitica_diaria_mlb(equipo_vis_final)
         l_stats = obtener_analitica_diaria_mlb(equipo_loc_final)
         
-        # Integración algorítmica de las 13 variables en tiempo real
         runs_vis = (v_stats["carreras_p"] * (v_stats["wrc"] / 100)) + (l_stats["whip_ab"] * 0.35) - (l_stats["k_bb"] * 0.05)
         runs_loc = (l_stats["carreras_p"] * (l_stats["wrc"] / 100)) + (v_stats["whip_ab"] * 0.30) - (v_stats["k_bb"] * 0.05)
         
-        # Incorporación de fatiga de relevistas, splits cruzados y el factor Umpire
         runs_vis += (l_stats["bp_era"] * 0.1 * l_stats["bp_uso"]) + l_stats["umpire_strike_zone"]
         runs_loc += (v_stats["bp_era"] * 0.1 * v_stats["bp_uso"]) + l_stats["umpire_strike_zone"]
         
-        # Ajuste geográfico por estadio (Park Factor)
         runs_vis *= l_stats["park_factor"]
         runs_loc *= l_stats["park_factor"]
         
-        # Motor de Montecarlo con 10,000 repeticiones estocásticas
         sim_vis = np.random.poisson(runs_vis, 10000)
         sim_loc = np.random.poisson(runs_loc, 10000)
         
-        # A. Cálculos de Mercado - Moneyline
         prob_v = (np.sum(sim_vis > sim_loc) / 10000) * 100
         prob_l = 100 - prob_v
         ganador_ml = equipo_vis_final if prob_v > prob_l else equipo_loc_final
         porcentaje_ml = max(prob_v, prob_l)
         
-        # B. Cálculos de Mercado - Over/Under (Línea Base: 8.5 carreras)
         prob_over = (np.sum((sim_vis + sim_loc) > 8.5) / 10000) * 100
         veredicto_ou = "OVER 8.5" if prob_over > 50 else "UNDER 8.5"
         porcentaje_ou = prob_over if prob_over > 50 else (100 - prob_over)
         
-        # C. Cálculos de Mercado - Runline Asiático (-1.5 / +1.5)
         if prob_v > prob_l:
             prob_cubrir = (np.sum((sim_vis - sim_loc) >= 2) / 10000) * 100
             veredicto_rl = f"{equipo_vis_final} -1.5" if prob_cubrir > 52.5 else f"{equipo_loc_final} +1.5"
@@ -244,7 +237,6 @@ if not error_detectado and equipo_vis_final and equipo_loc_final and equipo_vis_
             veredicto_rl = f"{equipo_loc_final} -1.5" if prob_cubrir > 52.5 else f"{equipo_vis_final} +1.5"
             porcentaje_rl = prob_cubrir if prob_cubrir > 52.5 else (100 - prob_cubrir)
 
-        # --- MOSTRAR LOS RESULTADOS EN BLOQUES PREMIUM DE NEÓN ---
         st.markdown(f"<h2 style='color:#ffffff; text-align:center;'>📊 INFORME CUANTITATIVO: {equipo_vis_final.upper()} vs {equipo_loc_final.upper()}</h2>", unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
@@ -255,7 +247,6 @@ if not error_detectado and equipo_vis_final and equipo_loc_final and equipo_vis_
         with col3:
             st.metric(label="⚾ RUNLINE (HÁNDICAP ASIÁTICO)", value=veredicto_rl, delta=f"{round(porcentaje_rl, 1)}% Estabilidad")
 
-        # --- 9. RESEÑAS TÉCNICAS EXPLICATIVAS EXIGIDAS ---
         st.markdown("---")
         st.markdown("### 📋 Reseñas y Justificación Técnica del Análisis")
         
