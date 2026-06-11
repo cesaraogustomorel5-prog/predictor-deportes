@@ -83,7 +83,6 @@ st.markdown("<h1>⚡ SHARP QUANT SYSTEM PRO ⚡</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Consola de Sabermetría Predictiva e Historial Automatizado de la MLB de Extremo a Extremo</p>", unsafe_allow_html=True)
 
 # --- 2. DICCIONARIO TRADUCTOR DE LA MLB (CIUDAD -> ORGANIZACIÓN & IDs LOGOS) ---
-# Mapeo exacto para limpiar nombres geográficos y enlazar la base de imágenes de la liga
 MAPEO_ORGANIZACIONES = {
     "Arizona Diamondbacks": {"nombre": "Diamondbacks", "id": 109},
     "Atlanta Braves": {"nombre": "Braves", "id": 144},
@@ -133,7 +132,7 @@ fecha_seleccionada_dt = st.date_input("Haz clic aquí para abrir el calendario i
 fecha_str = fecha_seleccionada_dt.strftime('%Y-%m-%d')
 
 # --- 4. CONEXIÓN AUTOMÁTICA CON LA API CENTRAL DE LA MLB ---
-@st.cache_data(ttl=30)  # Actualiza scores cada 30 segundos si hay juegos activos
+@st.cache_data(ttl=30)  
 def cargar_cartelera_total_api(fecha_busqueda):
     url = f"https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date={fecha_busqueda}"
     lista_juegos = []
@@ -141,22 +140,18 @@ def cargar_cartelera_total_api(fecha_busqueda):
         data = requests.get(url, timeout=5).json()
         for fecha_data in data.get("dates", []):
             for juego in fecha_data.get("games", []):
-                # Datos de Equipos
                 nombre_vis_completo = juego["teams"]["away"]["team"]["name"]
                 nombre_loc_completo = juego["teams"]["home"]["team"]["name"]
                 
                 vis_org, vis_logo = obtener_datos_equipo(nombre_vis_completo)
                 loc_org, loc_logo = obtener_datos_equipo(nombre_loc_completo)
                 
-                # Estado y Tiempos
-                abstract_status = juego["status"]["abstractGameState"] # Preview, Live, Final
+                abstract_status = juego["status"]["abstractGameState"] 
                 detailed_status = juego["status"].get("detailedState", "")
                 
-                # Gestión de Marcador e Inning
                 score_vis = juego["teams"]["away"].get("score", 0)
                 score_loc = juego["teams"]["home"].get("score", 0)
                 
-                # Extraer Entrada exacta si está disponible
                 inning_texto = ""
                 if abstract_status == "Live":
                     linescore_url = f"https://statsapi.mlb.com/api/v1.1/game/{juego['gamePk']}/feed/live"
@@ -169,7 +164,6 @@ def cargar_cartelera_total_api(fecha_busqueda):
                         inning_texto = "En Vivo"
                 elif abstract_status == "Final":
                     inning_texto = "Final - 9 Innings"
-                    # Verificar si hubo extra innings
                     if "linescore" in juego:
                         inst = juego["linescore"].get("currentInningOrdinal")
                         if inst and inst != "9th":
@@ -193,7 +187,6 @@ cartelera_partidos = cargar_cartelera_total_api(fecha_str)
 
 # --- 5. MODELO DE SABERMETRÍA (PROCESADOR ESTADÍSTICO INTERNO) ---
 def obtener_analitica_diaria_mlb(nombre_equipo):
-    # Base por defecto optimizada para responder ante cualquier emparejamiento de la temporada
     return {
         "era_ab": 3.95, "whip_ab": 1.25, "xera": 4.00, "fip": 4.10, "k_bb": 2.8,
         "bp_era": 3.80, "bp_whip": 1.24, "bp_uso": 1.00, "bp_descanso": "MODERADO",
@@ -244,9 +237,8 @@ st.markdown("---")
 if not cartelera_partidos:
     st.markdown("<div class='status-box'>📅 NO HAY ENCUENTROS PROGRAMADOS PARA ESTA FECHA. Utiliza el calendario superior para moverte a un día activo de la temporada regular o postemporada.</div>", unsafe_allow_html=True)
 else:
-    for idx, j en enumerate(cartelera_partidos):
+    for idx, j in enumerate(cartelera_partidos):
         
-        # Configurar etiquetas visuales según el estado real del juego
         if j["status"] == "Live":
             status_html = f"<span class='status-badge badge-live'>🔴 {j['inning_status'].upper()}</span>"
             mostrar_marcador = True
@@ -254,8 +246,8 @@ else:
         elif j["status"] == "Final":
             status_html = f"<span class='status-badge badge-final'>🏁 {j['inning_status'].upper()}</span>"
             mostrar_marcador = True
-            deshabilitar_analisis = True  # Opcional: No tiene sentido analizar un juego terminado
-        else: # Preview / Cancelled / Postponed
+            deshabilitar_analisis = True  
+        else: 
             status_html = f"<span class='status-badge badge-preview'>🕒 {j['hora_texto']}</span>"
             mostrar_marcador = False
             deshabilitar_analisis = False
@@ -264,7 +256,7 @@ else:
             status_html = f"<span class='status-badge badge-final'>⚠️ POSPUESTO</span>"
             deshabilitar_analisis = True
 
-        # Renderizar la Card Física Estilo Bet365 / ESPN scorebook
+        # Renderizar Card Física
         with st.container():
             st.markdown(f"""
                 <div class='game-card'>
@@ -289,7 +281,6 @@ else:
                 </div>
             """, unsafe_allow_html=True)
             
-            # Solo habilitar el motor si el partido no ha terminado o no está suspendido
             if not deshabilitar_analisis:
                 if st.button(f"⚡ Ejecutar Análisis Quant: {j['vis_name']} vs {j['loc_name']}", key=f"btn_{idx}"):
                     res_ml, por_ml, res_ou, por_ou, res_rl, por_rl, v_s, l_s = ejecutar_simulacion_quant(j["vis_completo"], j["loc_completo"])
