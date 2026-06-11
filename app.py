@@ -11,66 +11,75 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CONTROL TOTAL DE TEMAS (CLARO, OSCURO, SYSTEM/GRIS) ---
-if "tema_seleccionado" not in st.session_state:
-    st.session_state.tema_seleccionado = "Oscuro"
+# --- Gestión del Estado de la Fecha para Preservar Navegación ---
+zona_horaria = pytz.timezone('America/New_York')
+ahora_et = datetime.now(zona_horaria)
 
-# Inyección de CSS ultra-llamativo basado en estados dinámicos
-if st.session_state.tema_seleccionado == "Oscuro":
-    css_background = "#070a12"
-    css_card = "#121824"
-    css_text = "#ffffff"
-    css_accent = "#00ff66"
-    css_border = "#1e293b"
-    glow_effect = "text-shadow: 0 0 15px #00ff66; color: #00ff66 !important;"
-    card_hover = "border-color: #00ff66; box-shadow: 0 0 20px rgba(0, 255, 102, 0.15);"
+if "fecha_seleccionada" not in st.session_state:
+    st.session_state.fecha_seleccionada = ahora_et.date()
+
+if "tema_seleccionado" not in st.session_state:
+    st.session_state.tema_seleccionado = "Sistema"
+
+# --- 2. CONTROL TOTAL DE TEMAS (SISTEMA->OSCURO, CLARO, DARK->GRIS OSCURO MODERN) ---
+# Se configuran colores e iconos con alto contraste para cada entorno visual
+if st.session_state.tema_seleccionado == "Sistema":
+    css_background = "#0b0f19"
+    css_card = "#1e293b"
+    css_text = "#f8fafc"
+    css_accent = "#38bdf8"
+    css_border = "#334155"
+    css_text_secondary = "#94a3b8"
+    card_hover = "border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);"
+    icon_back = "🔙"
 elif st.session_state.tema_seleccionado == "Claro":
-    css_background = "#f4f6f9"
+    css_background = "#f8fafc"
     css_card = "#ffffff"
     css_text = "#0f172a"
-    css_accent = "#BF0D3E"
+    css_accent = "#0284c7"
     css_border = "#e2e8f0"
-    glow_effect = "color: #BF0D3E !important; font-weight: 900;"
-    card_hover = "border-color: #BF0D3E; box-shadow: 0 4px 15px rgba(191, 13, 62, 0.1);"
-else: # System -> Gris Cyberpunk
-    css_background = "#27272a"
-    css_card = "#3f3f46"
+    css_text_secondary = "#64748b"
+    card_hover = "border-color: #0284c7; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.1);"
+    icon_back = "👈"
+else: # Dark -> Gris Oscuro Moderno
+    css_background = "#18181b"
+    css_card = "#27272a"
     css_text = "#f4f4f5"
-    css_accent = "#38bdf8"
-    css_border = "#52525b"
-    glow_effect = "text-shadow: 0 0 15px #38bdf8; color: #38bdf8 !important;"
-    card_hover = "border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);"
+    css_accent = "#f43f5e"
+    css_border = "#3f3f46"
+    css_text_secondary = "#a1a1aa"
+    card_hover = "border-color: #f43f5e; box-shadow: 0 0 20px rgba(244, 63, 94, 0.2);"
+    icon_back = "⬅️"
 
 st.markdown(f"""
     <style>
     .stApp {{ background-color: {css_background}; color: {css_text}; transition: all 0.3s ease; }}
     
-    /* Título e Interfaz llamativa */
+    /* Encabezado elegante y dinámico sin colores rígidos antiguos */
     .title-mlb {{
-        {glow_effect}
-        font-family: 'Impact', sans-serif;
+        color: {css_accent} !important;
+        font-family: 'Arial Black', sans-serif;
         text-align: center;
-        font-size: 3rem !important;
-        letter-spacing: 2px;
+        font-size: 2.8rem !important;
+        letter-spacing: 1px;
         margin-bottom: 0px;
     }}
-    .subtitle {{ text-align: center; color: #94a3b8; font-family: monospace; font-size: 1rem; margin-bottom: 25px; }}
+    .subtitle {{ text-align: center; color: {css_text_secondary}; font-family: 'Segoe UI', sans-serif; font-size: 1rem; margin-bottom: 25px; }}
     
-    /* Barra Superior de la MLB */
+    /* Línea de separación estilizada y moderna */
     .mlb-gradient-bar {{
-        height: 8px;
-        background: linear-gradient(90deg, #041E42 0%, #041E42 45%, #ffffff 45%, #ffffff 55%, #BF0D3E 55%, #BF0D3E 100%);
-        border-radius: 50px;
+        height: 4px;
+        background: linear-gradient(90deg, {css_accent} 0%, {css_border} 50%, {css_accent} 100%);
+        border-radius: 10px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }}
     
-    /* Tarjetas de juego cautivadoras */
+    /* Tarjetas de juego premium sin textos residuales encima */
     .game-card {{
         background-color: {css_card};
-        border: 2px solid {css_border};
-        border-radius: 16px;
-        padding: 16px;
+        border: 1px solid {css_border};
+        border-radius: 14px;
+        padding: 18px;
         margin-bottom: 5px;
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }}
@@ -81,17 +90,17 @@ st.markdown(f"""
     
     .team-container {{ display: flex; align-items: center; justify-content: space-between; margin: 8px 0; }}
     .team-identity {{ display: flex; align-items: center; gap: 14px; }}
-    .team-logo {{ width: 30px; height: 30px; object-fit: contain; }}
-    .team-name {{ color: {css_text}; font-size: 1.2rem; font-weight: 800; font-family: 'Segoe UI', sans-serif; }}
-    .team-score {{ font-size: 1.5rem; font-weight: 900; color: {css_accent}; font-family: 'Impact', sans-serif; }}
+    .team-logo {{ width: 32px; height: 32px; object-fit: contain; }}
+    .team-name {{ color: {css_text}; font-size: 1.25rem; font-weight: 700; font-family: 'Segoe UI', sans-serif; }}
+    .team-score {{ font-size: 1.6rem; font-weight: 800; color: {css_accent}; font-family: 'Arial Black', sans-serif; }}
     
     .game-header {{ display: flex; justify-content: flex-end; margin-bottom: 8px; font-size: 0.85rem; font-family: monospace; }}
-    .status-badge {{ padding: 3px 10px; border-radius: 6px; font-weight: bold; color: #ffffff !important; }}
-    .badge-live {{ background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }}
-    .badge-final {{ background-color: #64748b; }}
-    .badge-preview {{ background-color: #1e3a8a; }}
+    .status-badge {{ padding: 4px 12px; border-radius: 8px; font-weight: bold; color: #ffffff !important; font-size: 0.8rem; }}
+    .badge-live {{ background-color: #ef4444; }}
+    .badge-final {{ background-color: {css_text_secondary}; }}
+    .badge-preview {{ background-color: {css_accent}; }}
     
-    /* Tabla de Entradas Diamond Boxscore */
+    /* Pizarra Dinámica de Entradas */
     .diamond-table {{
         width: 100%;
         border-collapse: collapse;
@@ -102,17 +111,18 @@ st.markdown(f"""
         overflow: hidden;
         border: 1px solid {css_border};
     }}
-    .diamond-table th {{ background-color: rgba(4, 30, 66, 0.95); color: white; padding: 12px; text-align: center; font-size: 0.85rem; font-weight: bold; }}
+    .diamond-table th {{ background-color: {css_border}; color: {css_text}; padding: 12px; text-align: center; font-size: 0.85rem; font-weight: bold; }}
     .diamond-table td {{ padding: 12px; border-bottom: 1px solid {css_border}; text-align: center; font-weight: 700; }}
     .diamond-table .team-cell {{ text-align: left; padding-left: 20px; display: flex; align-items: center; gap: 12px; }}
     
-    /* Estilo para los botones nativos de control */
+    /* Botones de control consistentes */
     div.stButton > button {{
         background-color: {css_card} !important;
         color: {css_text} !important;
-        border: 2px solid {css_border} !important;
-        border-radius: 10px !important;
-        font-weight: bold !important;
+        border: 1px solid {css_border} !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        padding: 6px 16px !important;
         transition: all 0.2s;
     }}
     div.stButton > button:hover {{
@@ -122,12 +132,12 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# Barra de control superior para cambio de temas instantáneo e interactivo
+# Barra de control superior para cambio de temas instantáneo
 col_t1, col_t2, col_t3 = st.columns([8, 3, 1])
 with col_t2:
     tema = st.select_slider(
         "🎨 INTERFAZ",
-        options=["Claro", "Oscuro", "System"],
+        options=["Claro", "Oscuro", "Sistema"],
         value=st.session_state.tema_seleccionado,
         label_visibility="collapsed"
     )
@@ -139,7 +149,7 @@ st.markdown("<div class='mlb-gradient-bar'></div>", unsafe_allow_html=True)
 st.markdown("<h1 class='title-mlb'>⚾ SHARP QUANT SYSTEM PRO 🔥</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Sabermetría Computacional Aplicada a las Grandes Ligas</p>", unsafe_allow_html=True)
 
-# --- 3. DICCIONARIO CON EL LOGO DE OAKLAND ATHLETICS REPARADO ---
+# --- 3. DICCIONARIO DE ORGANIZACIONES Y LOGOS OFICIALES ---
 MAPEO_ORGANIZACIONES = {
     "Arizona Diamondbacks": {"nombre": "Diamondbacks", "id": 109},
     "Atlanta Braves": {"nombre": "Braves", "id": 144},
@@ -160,7 +170,6 @@ MAPEO_ORGANIZACIONES = {
     "Minnesota Twins": {"nombre": "Twins", "id": 142},
     "New York Mets": {"nombre": "Mets", "id": 121},
     "New York Yankees": {"nombre": "Yankees", "id": 147},
-    # REPARACIÓN DE LOGO DE OAKLAND (Se usa el id oficial de franquicia 133 de la MLB)
     "Oakland Athletics": {"nombre": "Athletics", "id": 133},
     "Philadelphia Phillies": {"nombre": "Phillies", "id": 143},
     "Pittsburgh Pirates": {"nombre": "Pirates", "id": 134},
@@ -181,16 +190,13 @@ def obtener_datos_equipo(nombre_completo):
         return info["nombre"], logo_url
     return nombre_completo, ""
 
-zona_horaria = pytz.timezone('America/New_York')
-ahora_et = datetime.now(zona_horaria)
-
 # Inicializar estados de navegación interna
 if "vista_actual" not in st.session_state:
-    st.session_state.vista_actual = "cartelera" # "cartelera", "resumen", "prononstico"
+    st.session_state.vista_actual = "cartelera"
 if "juego_foco" not in st.session_state:
     st.session_state.juego_foco = None
 
-# --- 4. CONEXIÓN AUTOMÁTICA CON LA API CENTRAL (SIN MENSAGES DE CARGA O LOADING TEXT) ---
+# --- 4. CONEXIÓN CON LA API CENTRAL ---
 @st.cache_data(ttl=15, show_spinner=False)  
 def cargar_cartelera_total_api(fecha_busqueda):
     url = f"https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date={fecha_busqueda}"
@@ -273,9 +279,8 @@ def obtener_detalles_reales_partido(id_juego):
         pass
     return reporte
 
-# --- 5. ALGORITMO INTEGRAL RECALIBRADO (EVITA EL ARBITRARIO OVER 8.5) ---
+# --- 5. ALGORITMO DE VALORACIÓN PROYECTADA ---
 def obtener_analitica_real_api(nombre_completo):
-    # Base real de simulación sabermétrica por organización histórica
     base_stats = {
         "Yankees": {"carreras_p": 5.0, "wrc": 115, "whip": 1.20, "ops": .760},
         "Dodgers": {"carreras_p": 5.2, "wrc": 118, "whip": 1.18, "ops": .780},
@@ -290,22 +295,18 @@ def ejecutar_simulacion_quant(vis_full, loc_full):
     v = obtener_analitica_real_api(vis_full)
     l = obtener_analitica_real_api(loc_full)
     
-    # El cálculo matemático computa la interacción ofensiva vs pitcheo rival de forma cruda
     runs_vis_pred = (v["carreras_p"] * (v["wrc"] / 100) * l["whip"] * 0.8)
     runs_loc_pred = (l["carreras_p"] * (l["wrc"] / 100) * v["whip"] * 0.8)
     
-    # Generación de la distribución estadística de Poisson real sin sesgos fijos
     sim_vis = np.random.poisson(runs_vis_pred, 10000)
     sim_loc = np.random.poisson(runs_loc_pred, 10000)
     
-    # Cálculo exacto de las probabilidades del mercado
     prob_v = float(np.sum(sim_vis > sim_loc) / 10000) * 100
     prob_l = 100.0 - prob_v
     
     ganador_ml = vis_full if prob_v > prob_l else loc_full
     porcentaje_ml = max(prob_v, prob_l)
     
-    # Recalibración Dinámica del Over/Under basada estrictamente en la suma proyectada
     suma_proyectada = runs_vis_pred + runs_loc_pred
     linea_ou = 7.5 if suma_proyectada < 8.2 else (8.5 if suma_proyectada < 9.5 else 9.5)
     
@@ -313,7 +314,6 @@ def ejecutar_simulacion_quant(vis_full, loc_full):
     veredicto_ou = f"OVER {linea_ou}" if prob_over > 50 else f"UNDER {linea_ou}"
     porcentaje_ou = prob_over if prob_over > 50 else (100.0 - prob_over)
     
-    # Hándicap / Runline dinámico
     if prob_v > prob_l:
         prob_cubrir = float(np.sum((sim_vis - sim_loc) >= 2) / 10000) * 100
         veredicto_rl = f"{MAPEO_ORGANIZACIONES.get(vis_full,{'nombre':vis_full})['nombre']} -1.5" if prob_cubrir > 50 else f"{MAPEO_ORGANIZACIONES.get(loc_full,{'nombre':loc_full})['nombre']} +1.5"
@@ -325,18 +325,21 @@ def ejecutar_simulacion_quant(vis_full, loc_full):
         
     return ganador_ml, porcentaje_ml, veredicto_ou, porcentaje_ou, veredicto_rl, porcentaje_rl, runs_vis_pred, runs_loc_pred
 
-# --- GESTOR DE FLUJO EN PANTALLA COMPLETA ---
+# --- GESTOR DE FLUJO EN PANTALLA EXCLUSIVA ---
 if st.session_state.vista_actual == "cartelera":
     
-    # El calendario solo es visible en el menú o cartelera principal
-    st.markdown("### 📅 Calendario de Encuentros")
-    fecha_seleccionada_dt = st.date_input("Filtrar por día:", ahora_et, key="cal_main", label_visibility="collapsed")
-    fecha_str = fecha_seleccionada_dt.strftime('%Y-%m-%d')
+    # Navegación por fechas persistente usando el estado interno
+    st.markdown("### 📅 Filtrado Cronológico de Compromisos")
+    fecha_seleccionada_dt = st.date_input("Filtrar por día:", st.session_state.fecha_seleccionada, key="cal_main", label_visibility="collapsed")
     
-    cartelera_partidos = cargar_cartelera_total_api(fecha_str)
+    if fecha_seleccionada_dt != st.session_state.fecha_seleccionada:
+        st.session_state.fecha_seleccionada = fecha_seleccionada_dt
+        st.rerun()
+    
+    cartelera_partidos = cargar_cartelera_total_api(st.session_state.fecha_seleccionada.strftime('%Y-%m-%d'))
     
     if not cartelera_partidos:
-        st.markdown("<div style='background-color:#1e293b; padding:15px; border-radius:10px; color:#94a3b8;'>📅 Sin compromisos fijados para la fecha seleccionada.</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background-color:{css_card}; padding:18px; border-radius:12px; border: 1px solid {css_border}; color:{css_text_secondary};'>📅 Sin compromisos fijados para la fecha seleccionada.</div>", unsafe_allow_html=True)
     else:
         partidos_activos = [p for p in cartelera_partidos if p["status"] != "Final"]
         partidos_concluidos = [p for p in cartelera_partidos if p["status"] == "Final"]
@@ -376,7 +379,6 @@ if st.session_state.vista_actual == "cartelera":
             )
             st.markdown(html_tarjeta, unsafe_allow_html=True)
             
-            # Dos apartados limpios debajo de cada juego
             col_b1, col_b2 = st.columns(2)
             with col_b1:
                 if st.button(f"📊 Resumen de Pizarra", key=f"b_res_{idx}_{j['id_juego']}"):
@@ -384,27 +386,25 @@ if st.session_state.vista_actual == "cartelera":
                     st.session_state.vista_actual = "resumen"
                     st.rerun()
             with col_b2:
-                if st.button(f"🎯 Pronóstico Quant", key=f"b_pro_{idx}_{j['id_juego']}"):
+                if st.button(f"🎯 Respaldo de Tendencias", key=f"b_pro_{idx}_{j['id_juego']}"):
                     st.session_state.juego_foco = j
                     st.session_state.vista_actual = "pronostico"
                     st.rerun()
             st.markdown("<div style='margin-bottom:15px;'></div>", unsafe_allow_html=True)
 
-# MODO INTERNO 1: PANTALLA COMPLETA EXCLUSIVA - DIAMOND BOXSCORE
+# MODO INTERNO 1: DETALLE DE RESUMEN EXCLUSIVO
 elif st.session_state.vista_actual == "resumen":
-    # El control de scroll se fuerza apareciendo arriba de manera directa
-    col_nav, col_space = st.columns([2, 10])
+    j = st.session_state.juego_foco
+    info_real = obtener_detalles_reales_partido(j["id_juego"])
+    
+    col_nav, col_space = st.columns([3, 9])
     with col_nav:
-        # Botón con diseño interactivo estándar móvil/PC (flecha de retroceso de sistema)
-        if st.button("􀰪 Volver a la cartelera", key="exit_resumen"):
+        if st.button(f"{icon_back} Volver a la cartelera", key="exit_resumen"):
             st.session_state.vista_actual = "cartelera"
             st.rerun()
             
-    j = st.session_state.juego_foco
     st.markdown(f"## 🏟️ DIAMOND BOXSCORE PRO")
-    st.markdown(f"**{j['vis_name']} vs {j['loc_name']}** — Información oficial procesada de manera directa.")
-    
-    info_real = obtener_detalles_reales_partido(j["id_juego"])
+    st.markdown(f"**{j['vis_name']} vs {j['loc_name']}** — Desglose y rendimiento formal del compromiso.")
     
     th_entradas = "".join([f"<th>{e['num']}</th>" for e in info_real["entradas"]])
     td_vis_entradas = "".join([f"<td>{e['away']}</td>" for e in info_real["entradas"]])
@@ -422,8 +422,8 @@ elif st.session_state.vista_actual == "resumen":
                 <th style='text-align:left; padding-left:20px;'>ORGANIZACIÓN</th>
                 {th_entradas}
                 <th style='background-color:#BF0D3E;'>R</th>
-                <th style='background-color:#475569;'>H</th>
-                <th style='background-color:#475569;'>E</th>
+                <th style='background-color:{css_border};'>H</th>
+                <th style='background-color:{css_border};'>E</th>
             </tr>
         </thead>
         <tbody>
@@ -445,30 +445,41 @@ elif st.session_state.vista_actual == "resumen":
     </table>
     """
     st.markdown(html_boxscore, unsafe_allow_html=True)
-    st.info(f"📋 {info_real['destacados']} | Detalle del estado: {j['detalle']} - {j['inning_status']}")
+    
+    # Adaptación condicional según el estado del partido
+    if j["status"] == "Final":
+        st.markdown("### 📋 Balance Final de Rendimiento")
+        st.markdown(f"""
+        Compromiso finalizado oficialmente. Rendimiento consolidado en el diamante:
+        * **Puntuación Concluida:** {j['vis_name']} anotó {info_real['vis_rhe'][0]} carreras frente a {info_real['loc_rhe'][0]} de {j['loc_name']}.
+        * **Actividad en el Campo:** Se registró un acumulado de {info_real['vis_rhe'][1] + info_real['loc_rhe'][1]} imparciales y un estricto control de {info_real['vis_rhe'][2] + info_real['loc_rhe'][2]} descuidos defensivos globales.
+        * Estado del Sistema: Compromiso completado con registro definitivo indexado.
+        """)
+    else:
+        st.info(f"📋 {info_real['destacados']} | Detalle del estado: {j['detalle']} - {j['inning_status']}")
 
-# MODO INTERNO 2: PANTALLA COMPLETA EXCLUSIVA - PRONÓSTICO SABERMÉTRICO
+# MODO INTERNO 2: DETALLE DE PRONÓSTICO EXCLUSIVO
 elif st.session_state.vista_actual == "pronostico":
-    col_nav, col_space = st.columns([2, 10])
+    j = st.session_state.juego_foco
+    
+    col_nav, col_space = st.columns([3, 9])
     with col_nav:
-        if st.button("􀰪 Volver a la cartelera", key="exit_pronostico"):
+        if st.button(f"{icon_back} Volver a la cartelera", key="exit_pronostico"):
             st.session_state.vista_actual = "cartelera"
             st.rerun()
             
-    j = st.session_state.juego_foco
-    st.markdown(f"## 🎯 ANÁLISIS COMPUTACIONAL Y SIMULACIÓN")
-    st.markdown(f"Análisis matemático predictivo para el compromiso: **{j['vis_name']} vs {j['loc_name']}**")
+    st.markdown(f"## 🎯 RESPALDO DE TENDENCIAS Y MÉTRICAS")
+    st.markdown(f"Evaluación técnica predictiva para el compromiso: **{j['vis_name']} vs {j['loc_name']}**")
     
-    # Ejecución del algoritmo recalibrado sin sesgos fijos de Over
-    res_ml, por_ml, res_ou, por_ou, res_rl, por_rl, runs_v, runs_l = ejecutar_simulacion_quant(j["vis_completo"], j["loc_completo"])
+    res_ml, por_ml, veredicto_ou, porcentaje_ou, veredicto_rl, porcentaje_rl, runs_v, runs_l = ejecutar_simulacion_quant(j["vis_completo"], j["loc_completo"])
     
     c1, c2, c3 = st.columns(3)
     with c1:
-        st.metric(label="🏆 GANADOR EXPECT DEL MERCADO (MONEYLINE)", value=MAPEO_ORGANIZACIONES.get(res_ml, {"nombre": res_ml})["nombre"], delta=f"{round(por_ml, 1)}% Confianza")
+        st.metric(label="🏆 VALORACIÓN PRINCIPAL (MONEYLINE)", value=MAPEO_ORGANIZACIONES.get(res_ml, {"nombre": res_ml})["nombre"], delta=f"{round(por_ml, 1)}% Confianza")
     with c2:
-        st.metric(label="📈 LÍNEA CALCULADA DE CARRERAS (OVER/UNDER)", value=res_ou, delta=f"{round(por_ou, 1)}% Certeza")
+        st.metric(label="📈 CORTE ACUMULADO (OVER / UNDER)", value=veredicto_ou, delta=f"{round(porcentaje_ou, 1)}% Certeza")
     with c3:
-        st.metric(label="⚾ PROYECCIÓN DE MARGEN (RUNLINE)", value=res_rl, delta=f"{round(por_rl, 1)}% Estabilidad")
+        st.metric(label="⚾ MARGEN DE VENTAJA (RUNLINE)", value=veredicto_rl, delta=f"{round(porcentaje_rl, 1)}% Estabilidad")
         
     st.markdown("### 📝 JUSTIFICACIÓN COMPUTACIONAL BASADA EN LOS DATOS:")
     
@@ -476,11 +487,12 @@ elif st.session_state.vista_actual == "pronostico":
     l_short = j["loc_name"]
     total_runs_simulados = runs_v + runs_l
     
+    # Explicación clara sin mencionar cantidades de simulaciones
     explicacion = f"""
-    El modelo ha ejecutado **10,000 iteraciones estocásticas basadas en la distribución de Poisson** cruzando las métricas ofensivas y el cuerpo de pitcheo de ambos equipos:
+    Nuestra metodología efectúa una correlación matemática avanzada cruzando los vectores de rendimiento ofensivo y las métricas de pitcheo de ambas franquicias:
     
-    * **Poder Ofensivo y Eficiencia:** {v_short} ingresa con una proyección limpia de producción de **{round(runs_v, 2)}** carreras esperadas debido a su porcentaje de embasado corregido. Por su parte, {l_short} responde con un promedio de simulación de **{round(runs_l, 2)}** carreras en este parque.
-    * **Justificación del Ganador (Moneyline):** El algoritmo inclina la balanza hacia el equipo proyectado con mayor generación de carreras limpias por entrada y un WHIP de pitcheo que neutraliza de forma más óptima las ventanas de bateo rivales.
-    * **Recalibración Real del Total (Over/Under):** A diferencia de fijar un Over automático, la proyección acumulada de carreras combinadas se sitúa matemáticamente en **{round(total_runs_simulados, 2)}**. Basado en este balance real de pitcheo contra bateo, el sistema determinó de manera sustentada el veredicto de **{res_ou}**, adaptando la línea de corte de forma estricta para evitar sesgos artificiales.
+    * **Análisis de Productividad Esperada:** {v_short} cuenta con una proyección técnica de producción calculada en **{round(runs_v, 2)}** carreras debido a su capacidad de embasamiento ajustada. Por otro lado, {l_short} registra una estimación matemática de **{round(runs_l, 2)}** carreras en este entorno particular.
+    * **Sustentación del Ganador (Moneyline):** El modelo matemático inclina la prioridad hacia la franquicia que demuestra mayor solvencia estructural en la generación de carreras y un control de WHIP que restringe eficientemente el avance del oponente en las entradas clave.
+    * **Cálculo Real del Margen Total (Over / Under):** La suma neta de producción conjunta se posiciona matemáticamente en un umbral de **{round(total_runs_simulados, 2)}** carreras. En virtud de esta rigurosa ponderación de efectividad entre bateadores y lanzadores, el sistema determina de manera precisa el veredicto de **{veredicto_ou}**, adaptando la línea de corte de forma personalizada para reflejar las tendencias empíricas sin automatismos preconcebidos.
     """
     st.markdown(explicacion)
