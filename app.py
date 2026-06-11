@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# CSS Profesional para Marcadores, Logos y Calendario
+# CSS Profesional Compacto para Marcadores, Logos y Calendario
 st.markdown("""
     <style>
     .stApp { background-color: #0b0f17; color: #c9d1d9; }
@@ -31,8 +31,8 @@ st.markdown("""
         background-color: #161b22;
         border: 1px solid #30363d;
         border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 15px;
+        padding: 14px;
+        margin-bottom: 12px;
         transition: all 0.2s ease;
     }
     .game-card:hover {
@@ -40,16 +40,16 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(0, 255, 102, 0.1);
     }
     
-    /* Filas de Equipos con Logos alineados */
-    .team-container { display: flex; align-items: center; justify-content: space-between; margin: 8px 0; }
-    .team-identity { display: flex; align-items: center; gap: 12px; }
-    .team-logo { width: 32px; height: 32px; object-fit: contain; }
-    .team-name { color: #ffffff; font-size: 1.25rem; font-weight: bold; }
-    .team-score { font-size: 1.5rem; font-weight: 900; color: #00ff66; font-family: 'Impact', sans-serif; padding-right: 10px; }
+    /* Filas de Equipos con Logos alineados - Más pequeños */
+    .team-container { display: flex; align-items: center; justify-content: space-between; margin: 5px 0; }
+    .team-identity { display: flex; align-items: center; gap: 10px; }
+    .team-logo { width: 24px; height: 24px; object-fit: contain; }
+    .team-name { color: #ffffff; font-size: 1.15rem; font-weight: bold; }
+    .team-score { font-size: 1.2rem; font-weight: 900; color: #00ff66; font-family: 'Impact', sans-serif; padding-right: 10px; }
     
     /* Header e Info de la Card */
-    .game-header { display: flex; justify-content: space-between; border-bottom: 1px solid #21262d; padding-bottom: 6px; margin-bottom: 10px; font-size: 0.85rem; font-family: monospace; }
-    .status-badge { padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+    .game-header { display: flex; justify-content: flex-end; padding-bottom: 4px; margin-bottom: 6px; font-size: 0.82rem; font-family: monospace; }
+    .status-badge { padding: 2px 7px; border-radius: 4px; font-weight: bold; }
     .badge-live { background-color: #ff4444; color: #ffffff; text-shadow: 0 0 5px #ff4444; }
     .badge-final { background-color: #30363d; color: #8b949e; }
     .badge-preview { background-color: #00ff66; color: #000000; }
@@ -123,12 +123,12 @@ def obtener_datos_equipo(nombre_completo):
         return info["nombre"], logo_url
     return nombre_completo, ""
 
-# --- 3. BARRA CENTRAL DE CALENDARIO COMPLETO (TIPO TEMPORADA COMPLETA) ---
+# --- 3. SECCIÓN CALENDARIO ---
 zona_horaria = pytz.timezone('America/New_York')
 ahora_et = datetime.now(zona_horaria)
 
-st.markdown("### 📅 Explorador de la Temporada Completa")
-fecha_seleccionada_dt = st.date_input("Haz clic aquí para abrir el calendario integrado:", ahora_et, key="calendario_completo")
+st.markdown("### 📅 Calendario")
+fecha_seleccionada_dt = st.date_input("Haz clic aquí para seleccionar una fecha:", ahora_et, key="calendario_completo")
 fecha_str = fecha_seleccionada_dt.strftime('%Y-%m-%d')
 
 # --- 4. CONEXIÓN AUTOMÁTICA CON LA API CENTRAL DE LA MLB ---
@@ -164,10 +164,15 @@ def cargar_cartelera_total_api(fecha_busqueda):
                         inning_texto = "En Vivo"
                 elif abstract_status == "Final":
                     inning_texto = "Final - 9 Innings"
-                    if "linescore" in juego:
-                        inst = juego["linescore"].get("currentInningOrdinal")
-                        if inst and inst != "9th":
-                            inning_texto = f"Final - {inst} Innings"
+                    # Lógica para extraer la entrada exacta si terminó en extra innings
+                    linescore_url = f"https://statsapi.mlb.com/api/v1.1/game/{juego['gamePk']}/feed/live"
+                    try:
+                        ls_data = requests.get(linescore_url, timeout=2).json()
+                        ultimo_inning = ls_data.get("liveData", {}).get("linescore", {}).get("currentInningOrdinal", "")
+                        if ultimo_inning and ultimo_inning != "9th":
+                            inning_texto = f"Final - {ultimo_inning} Innings"
+                    except:
+                        pass
 
                 hora_utc = juego["gameDate"]
                 dt_utc = datetime.strptime(hora_utc, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=pytz.utc)
@@ -231,37 +236,41 @@ def ejecutar_simulacion_quant(vis, loc):
         
     return ganador_ml, porcentaje_ml, veredicto_ou, porcentaje_ou, veredicto_rl, porcentaje_rl, v_stats, l_stats
 
-# --- 6. RENDERIZACIÓN INTELIGENTE DE LA PIZARRA DE MARCADORES ---
+# --- 6. SEPARACIÓN Y ORDENAMIENTO DE PARTIDOS (ACTIVOS ARRIBA, FINALIZADOS ABAJO) ---
 st.markdown("---")
 
 if not cartelera_partidos:
-    st.markdown("<div class='status-box'>📅 NO HAY ENCUENTROS PROGRAMADOS PARA ESTA FECHA. Utiliza el calendario superior para moverte a un día activo de la temporada regular o postemporada.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='status-box'>📅 NO HAY ENCUENTROS PROGRAMADOS PARA ESTA FECHA.</div>", unsafe_allow_html=True)
 else:
-    for idx, j in enumerate(cartelera_partidos):
+    # Ordenar: Ponemos los 'Live' y 'Preview' primero, y los 'Final' al final de la lista
+    partidos_activos = [p for p in cartelera_partidos if p["status"] != "Final"]
+    partidos_concluidos = [p for p in cartelera_partidos if p["status"] == "Final"]
+    
+    cartelera_ordenada = partidos_activos + partidos_concluidos
+
+    for idx, j in enumerate(cartelera_ordenada):
         
         if j["status"] == "Live":
             status_html = f"<span class='status-badge badge-live'>🔴 {j['inning_status'].upper()}</span>"
             mostrar_marcador = True
-            deshabilitar_analisis = False
         elif j["status"] == "Final":
             status_html = f"<span class='status-badge badge-final'>🏁 {j['inning_status'].upper()}</span>"
             mostrar_marcador = True
-            deshabilitar_analisis = True  
         else: 
             status_html = f"<span class='status-badge badge-preview'>🕒 {j['hora_texto']}</span>"
             mostrar_marcador = False
-            deshabilitar_analisis = False
 
         if "postponed" in j["detalle"].lower() or "suspended" in j["detalle"].lower():
             status_html = f"<span class='status-badge badge-final'>⚠️ POSPUESTO</span>"
-            deshabilitar_analisis = True
 
-        # Renderizar Card Física
+        marcador_vis_html = f"<span class='st-score team-score'>{j['vis_score']}</span>" if mostrar_marcador else ""
+        marcador_loc_html = f"<span class='st-score team-score'>{j['loc_score']}</span>" if mostrar_marcador else ""
+
+        # Renderizar la tarjeta visual
         with st.container():
             st.markdown(f"""
                 <div class='game-card'>
                     <div class='game-header'>
-                        <span>⚾ GRANDES LIGAS (MLB)</span>
                         {status_html}
                     </div>
                     <div class='team-container'>
@@ -269,28 +278,28 @@ else:
                             <img class='team-logo' src='{j['vis_logo']}'>
                             <span class='team-name'>{j['vis_name']}</span>
                         </div>
-                        {f"<span class='team-score'>{j['vis_score']}</span>" if mostrar_marcador else ""}
+                        {marcador_vis_html}
                     </div>
                     <div class='team-container'>
                         <div class='team-identity'>
                             <img class='team-logo' src='{j['loc_logo']}'>
                             <span class='team-name'>{j['loc_name']}</span>
                         </div>
-                        {f"<span class='team-score'>{j['loc_score']}</span>" if mostrar_marcador else ""}
+                        {marcador_loc_html}
                     </div>
                 </div>
             """, unsafe_allow_html=True)
             
-            if not deshabilitar_analisis:
-                if st.button(f"⚡ Ejecutar Análisis Quant: {j['vis_name']} vs {j['loc_name']}", key=f"btn_{idx}"):
-                    res_ml, por_ml, res_ou, por_ou, res_rl, por_rl, v_s, l_s = ejecutar_simulacion_quant(j["vis_completo"], j["loc_completo"])
-                    
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric(label="🏆 GANADOR (MONEYLINE)", value=MAPEO_ORGANIZACIONES.get(res_ml, {"nombre": res_ml})["nombre"], delta=f"{round(por_ml, 1)}% Probabilidad")
-                    with col2:
-                        st.metric(label="📈 LÍNEA (OVER / UNDER)", value=res_ou, delta=f"{round(por_ou, 1)}% Certeza")
-                    with col3:
-                        st.metric(label="⚾ HÁNDICAP (RUNLINE)", value=res_rl, delta=f"{round(por_rl, 1)}% Estabilidad")
-                    st.markdown("<hr style='border: 1px dashed #30363d;'>", unsafe_allow_html=True)
+            # Botón expandible habilitado para TODOS los partidos
+            if st.button(f"⚡ Ver detalles y simulación: {j['vis_name']} vs {j['loc_name']}", key=f"btn_{idx}"):
+                res_ml, por_ml, res_ou, por_ou, res_rl, por_rl, v_s, l_s = ejecutar_simulacion_quant(j["vis_completo"], j["loc_completo"])
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric(label="🏆 PROYECCIÓN GANADOR (MONEYLINE)", value=MAPEO_ORGANIZACIONES.get(res_ml, {"nombre": res_ml})["nombre"], delta=f"{round(por_ml, 1)}% Probabilidad")
+                with col2:
+                    st.metric(label="📈 LÍNEA (OVER / UNDER)", value=res_ou, delta=f"{round(por_ou, 1)}% Certeza")
+                with col3:
+                    st.metric(label="⚾ HÁNDICAP (RUNLINE)", value=res_rl, delta=f"{round(por_rl, 1)}% Estabilidad")
+                st.markdown("<hr style='border: 1px dashed #30363d;'>", unsafe_allow_html=True)
