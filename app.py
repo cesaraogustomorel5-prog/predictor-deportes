@@ -35,9 +35,13 @@ WEIGHT_BULLPEN = 0.20
 WEIGHT_DEFENSE = 0.15
 WEIGHT_MOMENTUM = 0.10
 
-# Capturar cambio de estado desde el Switch estilo iPhone antes de renderizar estilos
+# Capturar y procesar el cambio de estado desde la URL de forma limpia
 if "temp_theme_toggle" in st.query_params:
-    st.session_state.tema_is_dark = st.query_params["temp_theme_toggle"] == "dark"
+    nuevo_tema = st.query_params["temp_theme_toggle"]
+    st.session_state.tema_is_dark = (nuevo_tema == "dark")
+    # Limpiamos el parámetro para evitar bucles de redirección
+    del st.query_params["temp_theme_toggle"]
+    st.rerun()
 
 # =====================================================================
 # MODULO 2: SISTEMA DE DISEÑO ADAPTATIVO TOTAL (MODO CLARO / OSCURO)
@@ -77,7 +81,6 @@ st.markdown(f"""
     }}
     
     /* CONTROL ABSOLUTO DE COLORES DE LETRA EN COMPONENTES NATIVOS */
-    /* Fuerza a que TODAS las letras del sistema adopten el mismo color que el nombre de los equipos */
     .stApp p, .stApp span, .stApp label, .stApp h1, .stApp h2, .stApp h3, .stApp div, 
     .stMarkdown, .stMetric, [data-testid="stMetricValue"], [data-testid="stMetricLabel"],
     table, th, td, tr, .stDataFrame {{
@@ -164,7 +167,7 @@ st.markdown(f"""
     .text-success-custom {{ color: {css_success} !important; font-weight: bold; }}
     .text-danger-custom {{ color: {css_danger} !important; font-weight: bold; }}
 
-    /* --- INTERRUPTOR/SWITCH ESTILO IPHONE --- */
+    /* --- INTERRUPTOR/SWITCH ESTILO IPHONE CORREGIDO --- */
     .ios-switch-container {{
         display: flex;
         align-items: center;
@@ -174,17 +177,21 @@ st.markdown(f"""
         border-radius: 12px;
         border: 1px solid {css_border};
         margin-bottom: 20px;
+        cursor: pointer;
+        user-select: none;
     }}
     .ios-switch-label {{
         font-weight: 600;
         font-size: 0.95rem;
         color: {css_text_fixed} !important;
+        pointer-events: none;
     }}
     .switch {{
         position: relative;
         display: inline-block;
         width: 51px;
         height: 31px;
+        pointer-events: none;
     }}
     .switch input {{
         opacity: 0;
@@ -193,7 +200,6 @@ st.markdown(f"""
     }}
     .slider {{
         position: absolute;
-        cursor: pointer;
         top: 0; left: 0; right: 0; bottom: 0;
         background-color: #e9e9ea;
         transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -239,17 +245,16 @@ st.markdown(f"""
 with st.sidebar:
     st.markdown("### 🛠️ Interfaz Global")
     
-    # Renderizado del Switch estilo iPhone mediante inyección HTML y pasarela por URL states
+    # Renderizado del Switch estilo iPhone con el evento onclick movido al contenedor principal
     checked_attr = "checked" if st.session_state.tema_is_dark else ""
     target_theme = "light" if st.session_state.tema_is_dark else "dark"
     texto_switch = "Modo Oscuro" if st.session_state.tema_is_dark else "Modo Claro"
     
     st.markdown(f"""
-        <div class='ios-switch-container'>
+        <div class='ios-switch-container' onclick="window.location.href='?temp_theme_toggle={target_theme}'">
             <span class='ios-switch-label'>{texto_switch}</span>
             <label class='switch'>
-                <input type='checkbox' id='ios-theme-toggle' {checked_attr} 
-                       onclick="window.location.href='?temp_theme_toggle={target_theme}'">
+                <input type='checkbox' id='ios-theme-toggle' {checked_attr}>
                 <span class='slider'></span>
             </label>
         </div>
@@ -519,7 +524,7 @@ if st.session_state.vista_actual == "dashboard":
     # Lista unificada ordenada: En curso -> Programados -> Finalizados
     cartelera_ordenada = j_vivo + j_preview + j_final
     
-    # Ajuste exacto de los títulos solicitados en la barra métrica superior
+    # Barra métrica superior
     k1, k2, k3 = st.columns(3)
     with k1: st.metric("Partidos del día", len(cartelera_total))
     with k2: st.metric("Partidos en curso", len(j_vivo))
@@ -589,7 +594,7 @@ if st.session_state.vista_actual == "dashboard":
 elif st.session_state.vista_actual == "resumen":
     juego = st.session_state.juego_foco
     
-    st_autorefresh = st.checkbox("Sincronización en Tiempo Real Activa (Automática)", value=True, help="Desmarca para pausar la API")
+    st_autorefresh = st.checkbox("Sincronización en Tiempo Real Activa (Automática)", value=True)
     
     live_data = descargar_datos_live_gameday(juego["id_juego"])
     pred = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
@@ -644,7 +649,7 @@ elif st.session_state.vista_actual == "resumen":
         st.rerun()
 
 # =====================================================================
-# RENDER: CORRECCIÓN COMPLETA DE RENDIMIENTO AVANZADO
+# RENDER: ENFOQUE PRONÓSTICO Y ANÁLISIS DE COEFICIENTES
 # =====================================================================
 elif st.session_state.vista_actual == "pronostico":
     juego = st.session_state.juego_foco
@@ -713,5 +718,5 @@ elif st.session_state.vista_actual == "pronostico":
     fav_gl = juego["vis_name"] if pred["idx_v"] > pred["idx_l"] else juego["loc_name"]
     st.info(f"""
     **Análisis de Situación Operativa:** Entrando a este compromiso, el modelo cuantitativo posiciona a **{fav_gl}** con ventaja matemática estructural. 
-    Esta conclusión se deriva de los cruces de contacto fuerte e indicators de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El value esperado (EV+) favors la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
+    Esta conclusión se deriva de los cruces de contacto fuerte e indicadores de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El value esperado (EV+) favors la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
     """)
