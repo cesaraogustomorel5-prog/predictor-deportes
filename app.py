@@ -332,13 +332,11 @@ def descargar_datos_live_gameday(id_juego):
             live_struct["outs"] = linescore.get("outs", 0)
             
             plays_node = data.get("liveData", {}).get("plays", {})
-            current_play = plays_node.get("count", {})
-            live_struct["balls"] = current_play.get("balls", 0)
-            live_struct["strikes"] = current_play.get("strikes", 0)
-            
-            current_play_node = plays_node.get("currentPlay", {})
-            live_struct["bateador"] = current_play_node.get("matchup", {}).get("batter", {}).get("fullName", "Bateador")
-            live_struct["lanzador"] = current_play_node.get("matchup", {}).get("pitcher", {}).get("fullName", "Lanzador")
+            current_play = plays_node.get("currentPlay", {})
+            live_struct["balls"] = current_play.get("count", {}).get("balls", 0)
+            live_struct["strikes"] = current_play.get("count", {}).get("strikes", 0)
+            live_struct["bateador"] = current_play.get("matchup", {}).get("batter", {}).get("fullName", "Bateador")
+            live_struct["lanzador"] = current_play.get("matchup", {}).get("pitcher", {}).get("fullName", "Lanzador")
             
             off_node = linescore.get("offense", {})
             live_struct["bases"] = ["first" in off_node, "second" in off_node, "third" in off_node]
@@ -452,10 +450,10 @@ if st.session_state.vista_actual == "dashboard":
     # Lista unificada ordenada: En curso -> Programados -> Finalizados
     cartelera_ordenada = j_vivo + j_preview + j_final
     
-    # Ajuste exacto de los títulos solicitados en la barra métrica superior
+    # Ajuste preciso de etiquetas según directrices del usuario
     k1, k2, k3 = st.columns(3)
     with k1: st.metric("Partidos del día", len(cartelera_total))
-    with k2: st.metric("Partidos en curso", len(j_vivo))
+    with k2: st.metric("Monitoreo Live", len(j_vivo))
     with k3: st.metric("Partidos finalizados", len(j_final))
     
     st.markdown("---")
@@ -467,12 +465,13 @@ if st.session_state.vista_actual == "dashboard":
             pred_quick = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
             
             if juego["status"] == "Live":
-                # Cambiado estrictamente a "Partidos en curso"
+                # Cambiado dinámicamente a "Partidos en curso" manteniendo la metadata del Inning
                 live_detail = juego['live_metadata'].replace("Live Gameday -", "").strip()
                 badge_lbl = f"🔴 Partidos en curso — {live_detail}" if "-" in juego['live_metadata'] else "🔴 Partidos en curso"
                 marcador_v = f"<span class='score-txt'>{juego['vis_score']}</span>"
                 marcador_l = f"<span class='score-txt'>{juego['loc_score']}</span>"
             elif juego["status"] == "Final":
+                # Cambiado estrictamente a "Partidos finalizados" con sus respectivos innings
                 badge_lbl = f"🏁 Partidos finalizados ({juego['innings_final']} Inn)"
                 marcador_v = f"<span class='score-txt'>{juego['vis_score']}</span>"
                 marcador_l = f"<span class='score-txt'>{juego['loc_score']}</span>"
@@ -647,5 +646,5 @@ elif st.session_state.vista_actual == "pronostico":
     fav_gl = juego["vis_name"] if pred["idx_v"] > pred["idx_l"] else juego["loc_name"]
     st.info(f"""
     **Análisis de Situación Operativa:** Entrando a este compromiso, el modelo cuantitativo posiciona a **{fav_gl}** con ventaja matemática estructural. 
-    Esta conclusión se deriva de los cruces de contacto fuerte e indicators de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El value esperado (EV+) favorece la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
+    Esta conclusión se deriva de los cruces de contacto fuerte e indicators de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El valor esperado (EV+) favorece la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
     """)
