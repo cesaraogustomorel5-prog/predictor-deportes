@@ -34,13 +34,12 @@ WEIGHT_DEFENSE = 0.15
 WEIGHT_MOMENTUM = 0.10
 
 # =====================================================================
-# MODULO 3 (Mover control aquí): SWITCH INTERACTIVO NATIVO ESTILO IPHONE
+# MODULO 3: SWITCH INTERACTIVO NATIVO ESTILO IPHONE
 # =====================================================================
 with st.sidebar:
     st.markdown("### 🛠️ Interfaz Global")
     
     # Usamos el toggle nativo de Streamlit para estabilidad absoluta
-    # Almacenará el estado directamente en st.session_state["tema_is_dark"]
     tema_seleccionado = st.toggle(
         "Modo Oscuro", 
         value=True, 
@@ -50,23 +49,23 @@ with st.sidebar:
 # =====================================================================
 # MODULO 2: SISTEMA DE DISEÑO ADAPTATIVO TOTAL (MODO CLARO / OSCURO)
 # =====================================================================
-# Color de texto FIJO y universal de alto contraste para ambos temas
-css_text_fixed = "#8e8e93"
-
+# Variables CSS Dinámicas según el estado del switch (Fondo y Letras cruzados)
 if st.session_state.tema_is_dark:
     css_bg = "#000000"             # Negro puro estilo iOS
+    css_text_dynamic = "#ffffff"   # LETRAS BLANCAS EN MODO OSCURO
     css_card = "#1c1c1e"           # Gris oscuro estilo iOS
     css_border = "#2c2c2e"
-    css_muted = "#64748b"
+    css_muted = "#a1a1aa"          # Gris intermedio para textos secundarios en oscuro
     css_accent = "#38bdf8"
     css_success = "#10b981"
     css_danger = "#ef4444"
     css_shadow = "rgba(56, 189, 248, 0.04)"
 else:
     css_bg = "#f2f2f7"             # Gris claro estilo iOS
+    css_text_dynamic = "#000000"   # LETRAS NEGRAS EN MODO CLARO
     css_card = "#ffffff"           # Blanco puro estilo iOS
     css_border = "#e5e5ea"
-    css_muted = "#64748b"
+    css_muted = "#71717a"          # Gris intermedio para textos secundarios en claro
     css_accent = "#2563eb"
     css_success = "#16a34a"
     css_danger = "#dc2626"
@@ -78,15 +77,21 @@ st.markdown(f"""
     
     .stApp {{
         background-color: {css_bg} !important;
-        color: {css_text_fixed} !important;
+        color: {css_text_dynamic} !important;
         font-family: 'Inter', sans-serif;
     }}
     
     /* CONTROL ABSOLUTO DE COLORES DE LETRA EN COMPONENTES NATIVOS */
     .stApp p, .stApp span, .stApp label, .stApp h1, .stApp h2, .stApp h3, .stApp div, 
     .stMarkdown, .stMetric, [data-testid="stMetricValue"], [data-testid="stMetricLabel"],
-    table, th, td, tr, .stDataFrame {{
-        color: {css_text_fixed} !important;
+    table, th, td, tr, .stDataFrame, .stWrite {{
+        color: {css_text_dynamic} !important;
+    }}
+    
+    /* REGLA ESPECÍFICA PARA TABLAS NATIVAS Y DATAFRAMES */
+    [data-testid="stTable"] td, [data-testid="stTable"] th, 
+    [data-testid="stDataFrame"] div {{
+        color: {css_text_dynamic} !important;
     }}
     
     /* --- REDISEÑO DEL TOGGLE NATIVO DE STREAMLIT A ESTILO IPHONE --- */
@@ -103,7 +108,7 @@ st.markdown(f"""
     div[data-testid="stCheckbox"] label p {{
         font-weight: 600 !important;
         font-size: 0.95rem !important;
-        color: {css_text_fixed} !important;
+        color: {css_text_dynamic} !important;
     }}
     /* Modificación de la pista/fondo del switch */
     div[data-testid="stCheckbox"] div[role="switch"] {{
@@ -164,17 +169,14 @@ st.markdown(f"""
         padding: 20px;
         margin-bottom: 16px;
         box-shadow: 0 4px 20px {css_shadow};
-        color: {css_text_fixed} !important;
+        color: {css_text_dynamic} !important;
     }}
     .scoreboard-row {{ display: flex; justify-content: space-between; align-items: center; margin: 12px 0; }}
     .team-box {{ display: flex; align-items: center; gap: 14px; }}
     .team-img {{ width: 34px; height: 34px; object-fit: contain; }}
-    .team-txt {{ font-size: 1.15rem; font-weight: 700; color: {css_text_fixed} !important; }}
+    .team-txt {{ font-size: 1.15rem; font-weight: 700; color: {css_text_dynamic} !important; }}
     .score-txt {{ font-size: 1.8rem; font-weight: 800; color: {css_accent} !important; font-family: 'JetBrains Mono', monospace; }}
     .score-empty {{ width: 35px; height: 25px; }}
-    
-    /* CONFIGURACIÓN DE ELEMENTOS DINÁMICOS */
-    .bar-background {{ background-color: {css_border}; height: 6px; border-radius: 3px; overflow: hidden; }}
     
     /* GAMEDAY LIVE TICKER PANEL */
     .gameday-ticker {{
