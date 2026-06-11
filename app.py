@@ -240,7 +240,7 @@ def ejecutar_simulacion_quant(vis, loc):
 partidos_disponibles = []
 partidos_finalizados = []
 
-for j en partidos_del_dia:
+for j in partidos_del_dia:
     if "postponed" in j["detalle"].lower() or "suspended" in j["detalle"].lower() or "cancel" in j["detalle"].lower():
         continue
     
