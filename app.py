@@ -8,7 +8,7 @@ import hashlib
 import time
 
 # =====================================================================
-# MODULO 1: TELEMETRÍA, PROTOCOLO DE ESTADO Y TIMING BI-DIRECCIONAL
+# MODULO 1: TELEMETRÍA, PROTOCOLO DE ESTADO ENG COMPLETO & TIMING BI-DIRECCIONAL
 # =====================================================================
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -73,10 +73,10 @@ st.markdown(f"""
         font-family: 'Inter', sans-serif;
     }}
     
-    /* ENCABEZADO PREMIUM AJUSTADO MLB */
+    /* ENCABEZADO PREMIUM MEJORADO */
     .mlb-premium-header {{
         position: relative;
-        padding: 16px 24px;
+        padding: 18px 24px;
         background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(3,7,18,0.98) 100%);
         border: 1px solid {css_border};
         border-radius: 12px;
@@ -85,24 +85,15 @@ st.markdown(f"""
         overflow: hidden;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }}
-    .mlb-premium-header::after {{
-        content: '⚾';
-        position: absolute;
-        right: 25px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 2.8rem;
-        opacity: 0.15;
-    }}
     .header-layout {{ display: flex; align-items: center; gap: 16px; }}
     .header-diamond {{
-        width: 12px; height: 12px;
+        width: 10px; height: 10px;
         background-color: {css_accent};
         transform: rotate(45deg);
         box-shadow: 0 0 10px {css_accent};
     }}
     .main-title-txt {{
-        font-size: 1.8rem !important;
+        font-size: 1.9rem !important;
         font-weight: 800 !important;
         color: #ffffff !important;
         letter-spacing: -0.5px;
@@ -115,7 +106,7 @@ st.markdown(f"""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }}
-    .sub-title-txt {{ color: #64748b; font-size: 0.85rem; font-weight: 500; margin: 2px 0 0 0 !important; }}
+    .sub-title-txt {{ color: #64748b; font-size: 0.85rem; font-weight: 500; margin: 4px 0 0 0 !important; }}
 
     /* TARJETAS PREMIUM ADAPTATIVAS */
     .premium-card {{
@@ -162,6 +153,19 @@ st.markdown(f"""
     .text-success-custom {{ color: {css_success} !important; font-weight: bold; }}
     .text-danger-custom {{ color: {css_danger} !important; font-weight: bold; }}
     </style>
+""", unsafe_allow_html=True)
+
+# ENCABEZADO CON EL NOMBRE EXACTO SOLICITADO
+st.markdown(f"""
+    <div class='mlb-premium-header'>
+        <div class='header-layout'>
+            <div class='header-diamond'></div>
+            <div>
+                <h1 class='main-title-txt'>SHARP <span>QUANT SYSTEM</span></h1>
+                <p class='sub-title-txt'>SISTEMA AVANZADO DE PREDICCIÓN CUANTITATIVA Y MONITOREO EN VIVO</p>
+            </div>
+        </div>
+    </div>
 """, unsafe_allow_html=True)
 
 # =====================================================================
@@ -540,7 +544,6 @@ elif st.session_state.vista_actual == "resumen":
     
     st.markdown("### 📊 Pizarra Oficial de Anotaciones (Linescore)")
     
-    # Arreglo para prevenir errores de indexación si las entradas cambian dinámicamente
     columnas_linescore = ["Equipo"] + [str(e["num"]) for e in live_data["entradas_line"]] + ["R", "H", "E"]
     fila_v = [juego["vis_siglas"]] + [str(e["away"]) for e in live_data["entradas_line"]] + [str(live_data["runs_v"]), str(live_data["hits_v"]), str(live_data["errors_v"])]
     fila_l = [juego["loc_siglas"]] + [str(e["home"]) for e in live_data["entradas_line"]] + [str(live_data["runs_l"]), str(live_data["hits_l"]), str(live_data["errors_l"])]
@@ -628,5 +631,5 @@ elif st.session_state.vista_actual == "pronostico":
     fav_gl = juego["vis_name"] if pred["idx_v"] > pred["idx_l"] else juego["loc_name"]
     st.info(f"""
     **Análisis de Situación Operativa:** Entrando a este compromiso, el modelo cuantitativo posiciona a **{fav_gl}** con ventaja matemática estructural. 
-    Esta conclusión se deriva de los cruces de contacto fuerte e indicadores de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El valor esperado (EV+) favorece la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
+    Esta conclusión se deriva de los cruces de contacto fuerte e indicators de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El valor esperado (EV+) favorece la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
     """)
