@@ -103,7 +103,7 @@ DICCIONARIO_SISTEMA = {
         "prediccion": "Proiezione Sharp", "en_vivo": "IN DIRETTA", "finalizado": "TERMINATO", "retrasado": "RITARDATO",
         "proximo": "PROSSIMO", "soporte": "Supporto Quantistico", "enviar": "Invia", "mensaje_placeholder": "Scrivi un messaggio...",
         "jornada": "Partite Totali", "monitoreo": "Monitoraggio Live", "finalizados": "Concluse", "no_juegos": "Nessun match analitico registrato per questa data.",
-        "analisis_tec": "Analisi Tecnica", "volver": "TORNA AL CALENDARIO", "ops": "OPS Collettivo", "wrc": "wRC+ Regolato",
+        "analisis_tec": "Anaisi Tecnica", "volver": "TORNA AL CALENDARIO", "ops": "OPS Collettivo", "wrc": "wRC+ Regolato",
         "iso": "ISO (Potenza Isolata)", "babip": "BABIP di Squadra", "hard_hit": "Hard Hit Rate %", "barrel": "Barrel % Collettivo",
         "xera": "xERA Proiettata", "xfip": "xFIP Stabilizzato", "whip": "WHIP Generale", "b_era": "ERA del Bullpen",
         "matriz_coef": "Matrice dei Coefficienti Sabermetrici Avanzati", "marcador_proy": "Punteggio Proiettato",
@@ -157,34 +157,30 @@ def txt(clave):
 # =====================================================================
 # MODULO 3: INTERFAZ PREMIUM (GLASSMORPHISM, NEOMORPHISM & COLOR PALETTE)
 # =====================================================================
-# Paleta de colores Premium de nivel mundial establecida en especificaciones
-css_bg = "#030712"        # Negro profundo
-css_card = "#111827"      # Gris grafito / azulado oscuro
-css_accent = "#2563eb"    # Azul eléctrico
-css_sport = "#10b981"     # Verde deportivo
-css_text = "#f9fafb"       # Blanco limpio
+css_bg = "#030712"        
+css_card = "#111827"      
+css_accent = "#2563eb"    
+css_sport = "#10b981"     
+css_text = "#f9fafb"       
 css_border = "rgba(255, 255, 255, 0.08)"
 css_shadow = "rgba(0, 0, 0, 0.5)"
 
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&family=JetBrains+Mono:wght=400;700&display=swap');
     
-    /* Configuración Reset e Inyección Estilística Global */
     .stApp {{
         background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, {css_bg} 70%) !important;
         color: {css_text} !important;
         font-family: 'Plus Jakarta Sans', sans-serif;
     }}
     
-    /* REMOCIÓN DE ESPACIOS VACÍOS INNECESARIOS (Mejora 6) */
     .block-container {{
         padding-top: 2rem !important;
         padding-bottom: 5rem !important;
         max-width: 1250px !important;
     }}
     
-    /* CONTENEDOR DE ENCABEZADO DE DISEÑO MUNDIAL */
     .premium-top-branding {{
         background: rgba(17, 24, 39, 0.6);
         backdrop-filter: blur(20px);
@@ -219,7 +215,6 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-    /* TARJETAS DE PARTIDOS ULTRA PREMIUM (Mejora 2) */
     .sport-match-card {{
         background: rgba(17, 24, 39, 0.55);
         backdrop-filter: blur(16px);
@@ -240,7 +235,6 @@ st.markdown(f"""
         box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
     }}
     
-    /* ALGORITMO VISUAL DE PARTIDO DESTACADO (Mejora 3) */
     .featured-match-card {{
         background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(17, 24, 39, 0.7) 100%);
         backdrop-filter: blur(20px);
@@ -268,7 +262,6 @@ st.markdown(f"""
         box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
     }}
 
-    /* COMPONENTES DE MARCADORES Y LAYOUT INTERNO */
     .card-meta {{
         display: flex;
         justify-content: space-between;
@@ -315,7 +308,6 @@ st.markdown(f"""
         margin-left: 8px;
     }}
 
-    /* ESTADOS VISUALES E INDICADORES LUMINESCENTES (Mejora 4) */
     .status-pill {{
         display: flex;
         align-items: center;
@@ -335,7 +327,6 @@ st.markdown(f"""
         animation: beaconPulse 1s infinite alternate;
     }}
 
-    /* PROYECCIONES INFERIORES DE TARJETA */
     .card-footer-metrics {{
         margin-top: 16px;
         padding-top: 12px;
@@ -346,7 +337,6 @@ st.markdown(f"""
         color: #9ca3af;
     }}
 
-    /* CHAT FLOTANTE PREMIUM MODAL (Mejora 12) */
     .chat-bubble-trigger {{
         position: fixed;
         bottom: 30px;
@@ -422,7 +412,6 @@ st.markdown(f"""
         background: #1f2937;
     }}
 
-    /* ANIMACIONES POR HARDWARE (Mejora 7) */
     @keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(10px); }} to {{ opacity: 1; transform: translateY(0); }} }}
     @keyframes slideUp {{ from {{ opacity: 0; transform: translateY(30px); }} to {{ opacity: 1; transform: translateY(0); }} }}
     @keyframes beaconPulse {{ from {{ transform: scale(0.9); opacity: 0.6; }} to {{ transform: scale(1.2); opacity: 1; }} }}
@@ -615,7 +604,7 @@ def ejecutar_motor_predictivo_sharp(vis_full, loc_full):
     }
 
 # =====================================================================
-# MODULO 6: ENCABEZADO PREMIUM Y SELECTOR DE IDIOMA TRADUCTOR (Mejora 5 & 11)
+# MODULO 6: ENCABEZADO PREMIUM Y SELECTOR DE IDIOMA TRADUCTOR
 # =====================================================================
 st.markdown(f"""
     <div class='premium-top-branding'>
@@ -626,7 +615,6 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Sistema de Traducción nativo en Navegación Superior sin recarga
 with st.sidebar:
     st.markdown("### 🌐 Localization")
     idioma_previo = st.session_state.idioma
@@ -642,10 +630,8 @@ with st.sidebar:
 # Carga de datos base
 cartelera_total = cargar_calendario_api(st.session_state.fecha_seleccionada.strftime('%Y-%m-%d'))
 
-# Identificar Heurísticamente el Partido Destacado del Día (Mejora 3)
 id_juego_destacado = None
 if cartelera_total:
-    # Se selecciona preferentemente un juego en vivo, o en su defecto el primero de la jornada
     juegos_vivos = [j for j in cartelera_total if j["status"] == "Live"]
     if juegos_vivos:
         id_juego_destacado = juegos_vivos[0]["id_juego"]
@@ -673,7 +659,6 @@ if st.session_state.vista_actual == "dashboard":
             pred = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
             es_destacado = (juego["id_juego"] == id_juego_destacado)
             
-            # Setup de clases CSS dinámicas según estados visuales (Mejora 4)
             card_class = "featured-match-card" if es_destacado else "sport-match-card"
             tag_destacado_html = f"<div class='featured-tag'>{txt('partido_destacado')}</div>" if es_destacado else ""
             
@@ -692,6 +677,11 @@ if st.session_state.vista_actual == "dashboard":
                 
             dot_v = "<span class='favorite-dot'></span>" if pred["fav"] == "VIS" else ""
             dot_l = "<span class='favorite-dot'></span>" if pred["fav"] == "LOC" else ""
+            
+            # --- MEJORA CRÍTICA EXCLUSIVA: SANITIZACIÓN ABSOLUTA DE CONTENEDORES ---
+            label_probabilidad = txt('prob_victoria')
+            siglas_favorito = juego['vis_siglas'] if pred['fav'] == "VIS" else juego['loc_siglas']
+            porcentaje_favorito = pred['prob_v'] if pred['fav'] == "VIS" else pred['prob_l']
             
             st.markdown(f"""
                 <div class='{card_class}'>
@@ -716,12 +706,11 @@ if st.session_state.vista_actual == "dashboard":
                     </div>
                     <div class='card-footer-metrics'>
                         <div>💡 Proyección: <b>{juego['vis_siglas']} {pred['runs_v']} - {pred['runs_l']} {juego['loc_siglas']}</b></div>
-                        <div>📊 {txt('prob_victoria')}: <span style='color:{css_sport}; font-weight:700;'>{juego['vis_siglas']} {pred['prob_v']}%</span></div>
+                        <div>📊 {label_probabilidad}: <span style='color:#10b981; font-weight:700;'>{siglas_favorito} {porcentaje_favorito}%</span></div>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
             
-            # Navegación premium integrada sin espacios muertos
             c_b1, c_b2 = st.columns(2)
             with c_b1:
                 if st.button(f"📺 LIVE TICKER #{juego['id_juego']}", key=f"nav_live_{juego['id_juego']}", use_container_width=True):
@@ -740,13 +729,19 @@ if st.session_state.vista_actual == "dashboard":
 # =====================================================================
 elif st.session_state.vista_actual == "resumen":
     juego = st.session_state.juego_foco
+    
+    st.form_submit_button = None 
+    st_autorefresh = st.checkbox("Sincronización en Tiempo Real Activa (Automática)", value=True)
+    
     live_data = descargar_datos_live_gameday(juego["id_juego"])
     pred = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
     
     st.markdown(f"## 🏟️ Live Gameday Match-Center")
     st.markdown(f"⚡ **{juego['vis_name']}** vs **{juego['loc_name']}**")
     
-    # Marcador Dinámico en Vivo con Efecto Glass
+    flecha_half = "▲ Alta" if live_data["is_top"] else "▼ Baja"
+    estado_marcador_live = f"{juego['vis_siglas']} {live_data['runs_v']} - {live_data['runs_l']} {juego['loc_siglas']}"
+    
     st.markdown(f"""
         <div class='sport-match-card' style='border-left: 4px solid {css_sport};'>
             <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;'>
@@ -768,17 +763,14 @@ elif st.session_state.vista_actual == "resumen":
         </div>
     """, unsafe_allow_html=True)
     
-    # Estado de Almohadillas
     b1, b2, b3 = live_data["bases"]
     st.markdown(f"**{txt('ocupacion')}:** | {'1B [✖]' if b1 else '1B [ ── ]'} | {'2B [✖]' if b2 else '2B [ ── ]'} | {'3B [✖]' if b3 else '3B [ ── ]'} |")
     
-    # Tabla Nativa Oficial
     st.markdown(f"### {txt('pizarra')}")
     fil_v = [juego["vis_siglas"]] + [str(e["away"]) for e in live_data["entradas_line"]] + [str(live_data["runs_v"]), str(live_data["hits_v"]), str(live_data["errors_v"])]
     fil_l = [juego["loc_siglas"]] + [str(e["home"]) for e in live_data["entradas_line"]] + [str(live_data["runs_l"]), str(live_data["hits_l"]), str(live_data["errors_l"])]
     st.table([fil_v, fil_l])
     
-    # Historial Selectivo de Anotaciones (Mejora 2)
     st.markdown(f"### {txt('historico_anot')}")
     if live_data["scoring_plays"]:
         for play in reversed(live_data["scoring_plays"]):
@@ -788,6 +780,10 @@ elif st.session_state.vista_actual == "resumen":
         
     if st.button(txt("volver"), use_container_width=True):
         st.session_state.vista_actual = "dashboard"
+        st.rerun()
+
+    if st_autorefresh and live_data["activo"]:
+        time.sleep(7)
         st.rerun()
 
 # =====================================================================
@@ -805,7 +801,6 @@ elif st.session_state.vista_actual == "pronostico":
     with c2: st.metric(f"{txt('prob_victoria')} {juego['vis_siglas']}", f"{pred['prob_v']}%")
     with c3: st.metric(txt("certeza"), f"{pred['confianza']}%")
     
-    # Matriz Limpia sin HTML Corrupto (Mejora 7)
     metricas = [
         (txt("ops"), "ops"), (txt("wrc"), "wrc"), (txt("iso"), "iso"), (txt("babip"), "babip"),
         (txt("hard_hit"), "hard_hit"), (txt("barrel"), "barrel"), (txt("xera"), "xera"),
@@ -834,9 +829,8 @@ elif st.session_state.vista_actual == "pronostico":
         st.rerun()
 
 # =====================================================================
-# MODULO 7: CONTROL ASINCRÓNICO DE SOPORTE POR CHAT (Mejora 12)
+# MODULO 7: CONTROL ASINCRÓNICO DE SOPORTE POR CHAT
 # =====================================================================
-# Botón disparador interactivo flotante en pantalla
 st.markdown("""
     <div class='chat-bubble-trigger'>
         <span style='font-size: 1.5rem;'>💬</span>
@@ -844,7 +838,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Panel de control lateral para la simulación del modal flotante sin interferencias
 with st.sidebar:
     st.markdown("---")
     st.markdown(f"### ⚡ {txt('soporte')}")
@@ -873,7 +866,6 @@ with st.sidebar:
                     "timestamp": datetime.now(ZONA_HORARIA).strftime('%I:%M %p'),
                     "estado": "En proceso"
                 })
-                # Respuesta simulada en tiempo real de la Inteligencia Artificial del sistema
                 st.session_state.chat_historial.append({
                     "origen": "sistema",
                     "texto": "Recibido. Nuestro agente cuántico está procesando los vectores de tu solicitud.",
