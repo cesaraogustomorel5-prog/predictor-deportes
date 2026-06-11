@@ -19,8 +19,6 @@ AHORA_ET = datetime.now(ZONA_HORARIA)
 # Inicialización del Engine State
 if "fecha_seleccionada" not in st.session_state:
     st.session_state.fecha_seleccionada = AHORA_ET.date()
-if "tema_is_dark" not in st.session_state:
-    st.session_state.tema_is_dark = True  # Dual state estricto (Claro / Oscuro)
 if "vista_actual" not in st.session_state:
     st.session_state.vista_actual = "dashboard" 
 if "juego_foco" not in st.session_state:
@@ -35,13 +33,19 @@ WEIGHT_BULLPEN = 0.20
 WEIGHT_DEFENSE = 0.15
 WEIGHT_MOMENTUM = 0.10
 
-# Capturar y procesar el cambio de estado desde la URL de forma limpia
-if "temp_theme_toggle" in st.query_params:
-    nuevo_tema = st.query_params["temp_theme_toggle"]
-    st.session_state.tema_is_dark = (nuevo_tema == "dark")
-    # Limpiamos el parámetro para evitar bucles de redirección
-    del st.query_params["temp_theme_toggle"]
-    st.rerun()
+# =====================================================================
+# MODULO 3 (Mover control aquí): SWITCH INTERACTIVO NATIVO ESTILO IPHONE
+# =====================================================================
+with st.sidebar:
+    st.markdown("### 🛠️ Interfaz Global")
+    
+    # Usamos el toggle nativo de Streamlit para estabilidad absoluta
+    # Almacenará el estado directamente en st.session_state["tema_is_dark"]
+    tema_seleccionado = st.toggle(
+        "Modo Oscuro", 
+        value=True, 
+        key="tema_is_dark"
+    )
 
 # =====================================================================
 # MODULO 2: SISTEMA DE DISEÑO ADAPTATIVO TOTAL (MODO CLARO / OSCURO)
@@ -52,7 +56,6 @@ css_text_fixed = "#8e8e93"
 if st.session_state.tema_is_dark:
     css_bg = "#000000"             # Negro puro estilo iOS
     css_card = "#1c1c1e"           # Gris oscuro estilo iOS
-    css_toggle_bg = "#32d74b"      # Verde activo de Apple
     css_border = "#2c2c2e"
     css_muted = "#64748b"
     css_accent = "#38bdf8"
@@ -62,7 +65,6 @@ if st.session_state.tema_is_dark:
 else:
     css_bg = "#f2f2f7"             # Gris claro estilo iOS
     css_card = "#ffffff"           # Blanco puro estilo iOS
-    css_toggle_bg = "#e9e9ea"      # Gris apagado de Apple
     css_border = "#e5e5ea"
     css_muted = "#64748b"
     css_accent = "#2563eb"
@@ -87,6 +89,38 @@ st.markdown(f"""
         color: {css_text_fixed} !important;
     }}
     
+    /* --- REDISEÑO DEL TOGGLE NATIVO DE STREAMLIT A ESTILO IPHONE --- */
+    div[data-testid="stCheckbox"] {{
+        background-color: {css_card} !important;
+        border: 1px solid {css_border} !important;
+        padding: 12px 16px !important;
+        border-radius: 14px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        flex-direction: row-reverse !important;
+        align-items: center !important;
+    }}
+    div[data-testid="stCheckbox"] label p {{
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        color: {css_text_fixed} !important;
+    }}
+    /* Modificación de la pista/fondo del switch */
+    div[data-testid="stCheckbox"] div[role="switch"] {{
+        background-color: #e9e9ea !important;
+        border: none !important;
+        transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }}
+    /* Color cuando el switch está encendido (Verde Apple) */
+    div[data-testid="stCheckbox"] div[role="switch"][aria-checked="true"] {{
+        background-color: #32d74b !important;
+    }}
+    /* Modificación del círculo interior deslizable */
+    div[data-testid="stCheckbox"] div[role="switch"] div {{
+        background-color: #ffffff !important;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15) !important;
+    }}
+
     /* ENCABEZADO PREMIUM MEJORADO */
     .mlb-premium-header {{
         position: relative;
@@ -157,72 +191,8 @@ st.markdown(f"""
     }}
     @keyframes livePulseAnim {{ 0% {{ opacity: 0.3; }} 100% {{ opacity: 1; }} }}
     
-    .play-by-play-box {{
-        max-height: 180px; overflow-y: auto; background-color: rgba(0,0,0,0.05);
-        padding: 10px; border-radius: 6px; border: 1px solid {css_border};
-        font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: {css_text_fixed};
-    }}
-    
-    /* RESALTADORES NATIVOS PARA ESTILOS DINÁMICOS */
     .text-success-custom {{ color: {css_success} !important; font-weight: bold; }}
     .text-danger-custom {{ color: {css_danger} !important; font-weight: bold; }}
-
-    /* --- INTERRUPTOR/SWITCH ESTILO IPHONE CORREGIDO --- */
-    .ios-switch-container {{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: {css_card};
-        padding: 12px 16px;
-        border-radius: 12px;
-        border: 1px solid {css_border};
-        margin-bottom: 20px;
-        cursor: pointer;
-        user-select: none;
-    }}
-    .ios-switch-label {{
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: {css_text_fixed} !important;
-        pointer-events: none;
-    }}
-    .switch {{
-        position: relative;
-        display: inline-block;
-        width: 51px;
-        height: 31px;
-        pointer-events: none;
-    }}
-    .switch input {{
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }}
-    .slider {{
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-color: #e9e9ea;
-        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 34px;
-    }}
-    .slider:before {{
-        position: absolute;
-        content: "";
-        height: 27px;
-        width: 27px;
-        left: 2px;
-        bottom: 2px;
-        background-color: #ffffff;
-        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 50%;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-    }}
-    input:checked + .slider {{
-        background-color: #32d74b;
-    }}
-    input:checked + .slider:before {{
-        transform: translateX(20px);
-    }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -239,33 +209,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# =====================================================================
-# MODULO 3: BOTONES FLOTANTES & SWITCH INTERACTIVO TIPO IPHONE
-# =====================================================================
-with st.sidebar:
-    st.markdown("### 🛠️ Interfaz Global")
-    
-    # Renderizado del Switch estilo iPhone con el evento onclick movido al contenedor principal
-    checked_attr = "checked" if st.session_state.tema_is_dark else ""
-    target_theme = "light" if st.session_state.tema_is_dark else "dark"
-    texto_switch = "Modo Oscuro" if st.session_state.tema_is_dark else "Modo Claro"
-    
-    st.markdown(f"""
-        <div class='ios-switch-container' onclick="window.location.href='?temp_theme_toggle={target_theme}'">
-            <span class='ios-switch-label'>{texto_switch}</span>
-            <label class='switch'>
-                <input type='checkbox' id='ios-theme-toggle' {checked_attr}>
-                <span class='slider'></span>
-            </label>
-        </div>
-    """, unsafe_allow_html=True)
-
 if st.session_state.vista_actual != "dashboard":
-    st.markdown(f"""
-        <div style='position: fixed; bottom: 30px; right: 30px; z-index: 99999;'>
-            <div style='animation: pulseFloating 2s infinite alternate;'></div>
-        </div>
-    """, unsafe_allow_html=True)
     if st.button("⚾ VOLVER AL CALENDARIO", key="floating_back_btn"):
         st.session_state.vista_actual = "dashboard"
         st.rerun()
