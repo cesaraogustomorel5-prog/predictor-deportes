@@ -121,7 +121,7 @@ for nombre, info in partidos_api.items():
     if fecha_hoy.time() < info["hora"] and info["status"] == "Preview":
         opciones_desplegable.append(nombre)
 
-opciones_desplegable.append("➕ ENTRADA MANUAL / CONFIGURACIÓN PERSONALIZADA")
+opciones_desplegable.append("➕ SELECCIÓN MANUAL DESDE LA LISTA OFICIAL")
 
 # --- DESPLIEGUE EN PANTALLA ---
 st.markdown(f"### 🗓️ Calendario Activo: {fecha_hoy.strftime('%d')} de {mes_espanol}, {fecha_hoy.strftime('%Y')}")
@@ -134,19 +134,15 @@ for nombre, info in partidos_api.items():
 partido_seleccionado = st.selectbox("🎯 Selecciona un partido del día:", opciones_desplegable)
 
 # --- CONFIGURACIÓN DE APARTADO LOCAL Y VISITANTE ---
-if partido_seleccionado == "➕ ENTRADA MANUAL / CONFIGURACIÓN PERSONALIZADA":
+if partido_seleccionado == "➕ SELECCIÓN MANUAL DESDE LA LISTA OFICIAL":
     st.markdown("#### 🛠️ Panel de Configuración Personalizada")
     col_input1, col_input2 = st.columns(2)
     with col_input1:
         st.markdown("**VISITANTE**")
-        v_team = st.selectbox("Selecciona desde la lista (VISITANTE):", ["-- Seleccionar --"] + EQUIPOS_MLB, key="v_list")
-        v_manual = st.text_input("O escríbelo manualmente (VISITANTE):", key="v_txt")
-        equipo_vis_final = v_manual.strip() if v_manual else v_team
+        equipo_vis_final = st.selectbox("Selecciona desde la lista (VISITANTE):", ["-- Seleccionar --"] + EQUIPOS_MLB, key="v_list")
     with col_input2:
         st.markdown("**LOCAL**")
-        l_team = st.selectbox("Selecciona desde la lista (LOCAL):", ["-- Seleccionar --"] + EQUIPOS_MLB, key="l_list")
-        l_manual = st.text_input("O escríbelo manualmente (LOCAL):", key="l_txt")
-        equipo_loc_final = l_manual.strip() if l_manual else l_team
+        equipo_loc_final = st.selectbox("Selecciona desde la lista (LOCAL):", ["-- Seleccionar --"] + EQUIPOS_MLB, key="l_list")
 else:
     equipo_vis_final = partidos_api[partido_seleccionado]["vis"]
     equipo_loc_final = partidos_api[partido_seleccionado]["loc"]
