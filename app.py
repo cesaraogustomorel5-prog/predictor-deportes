@@ -167,7 +167,6 @@ st.markdown(f"""
 # =====================================================================
 # MODULO 3: BOTONES FLOTANTES (SWITCH DE TEMA & REGRESO)
 # =====================================================================
-# Render del Switch de Tema flotante (Mejora 5 - Dual State Sol/Luna)
 tema_icono = "☀️" if st.session_state.tema_is_dark else "🌙"
 tema_label = "Modo Claro" if st.session_state.tema_is_dark else "Modo Oscuro"
 
@@ -179,14 +178,12 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Botón nativo Streamlit encapsulado en columna flotante para evitar recargas completas
 with st.sidebar:
     st.markdown("### 🛠️ Interfaz Global")
     if st.button(f"{tema_icono} Cambiar a {tema_label}", key="global_theme_switcher"):
         st.session_state.tema_is_dark = not st.session_state.tema_is_dark
         st.rerun()
 
-# Botón Flotante Permanente de Regreso a Cartelera (Modificado con comportamiento UX fluido)
 if st.session_state.vista_actual != "dashboard":
     st.markdown(f"""
         <div style='position: fixed; bottom: 30px; right: 30px; z-index: 99999;'>
@@ -262,7 +259,6 @@ def cargar_calendario_api(fecha_busqueda_str):
                 dt_utc = datetime.strptime(juego["gameDate"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=pytz.utc)
                 dt_et = dt_utc.astimezone(ZONA_HORARIA)
 
-                # Construcción del Live Metadata Ampliado (Mejora 6)
                 live_string_descr = "Live Gameday"
                 if abstract_state == "Live":
                     linescore_url = f"https://statsapi.mlb.com/api/v1/game/{juego['gamePk']}/linescore"
@@ -290,7 +286,6 @@ def cargar_calendario_api(fecha_busqueda_str):
         return st.session_state.ultimo_cache_exitoso.get(fecha_busqueda_str, [])
 
 def descargar_datos_live_gameday(id_juego):
-    """Descarga de datos en tiempo real de MLB Gameday Feed con filtro selectivo de anotaciones (Mejora 2)"""
     url = f"https://statsapi.mlb.com/api/v1.1/game/{id_juego}/feed/live"
     live_struct = {
         "activo": False, "inning": "1st", "is_top": True, "outs": 0, "balls": 0, "strikes": 0,
@@ -335,7 +330,6 @@ def descargar_datos_live_gameday(id_juego):
             off_node = linescore.get("offense", {})
             live_struct["bases"] = ["first" in off_node, "second" in off_node, "third" in off_node]
             
-            # FILTRO SELECTIVO DE JUGADAS: Solo eventos de anotación (Mejora 2)
             all_plays = plays_node.get("allPlays", [])
             for p in all_plays:
                 if p.get("about", {}).get("isScoringPlay", False):
@@ -429,7 +423,7 @@ def draw_bar_premium(label, val_v, val_l, team_v, team_l):
 cartelera_total = cargar_calendario_api(st.session_state.fecha_seleccionada.strftime('%Y-%m-%d'))
 
 # =====================================================================
-# RENDER: VISTA CALENDARIO CENTRAL (Mejora 3 - Nombre Fijo Permanente)
+# RENDER: VISTA CALENDARIO CENTRAL
 # =====================================================================
 if st.session_state.vista_actual == "dashboard":
     st.markdown("### 📅 Calendario")
@@ -454,7 +448,6 @@ if st.session_state.vista_actual == "dashboard":
         for juego in cartelera_total:
             pred_quick = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
             
-            # Formateo dinámico del estado del partido en el Calendario (Mejora 6)
             if juego["status"] == "Live":
                 badge_lbl = f"🔴 {juego['live_metadata']}"
                 marcador_v = f"<span class='score-txt'>{juego['vis_score']}</span>"
@@ -491,7 +484,6 @@ if st.session_state.vista_actual == "dashboard":
                 </div>
             """, unsafe_allow_html=True)
             
-            # Enlaces de navegación rápidos y estables
             c_b1, c_b2 = st.columns(2)
             with c_b1:
                 if st.button(f"🔴 Central Gameday #{juego['id_juego']}", key=f"tg_live_{juego['id_juego']}"):
@@ -506,24 +498,19 @@ if st.session_state.vista_actual == "dashboard":
             st.markdown("<div style='margin-bottom:12px;'></div>", unsafe_allow_html=True)
 
 # =====================================================================
-# RENDER: EN TIEMPO REAL REACTIVO - LIVE GAMEDAY TICKER (Mejora 1 & 2)
+# RENDER: EN TIEMPO REAL REACTIVO - LIVE GAMEDAY TICKER
 # =====================================================================
 elif st.session_state.vista_actual == "resumen":
     juego = st.session_state.juego_foco
     
-    # ⚡ AUTOMATION DE ACTUALIZACIÓN SIN BOTÓN: Inyección de fragmento Auto-Refresh nativo en Streamlit
-    # Agrega un intervalo reactivo para refrescar métricas en vivo en la UI cada 7 segundos de forma fluida
-    st.form_submit_button = None 
     st_autorefresh = st.checkbox("Sincronización en Tiempo Real Activa (Automática)", value=True, help="Desmarca para pausar la API")
     
-    # Descarga de datos en caliente
     live_data = descargar_datos_live_gameday(juego["id_juego"])
     pred = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
     
     st.markdown(f"## 🏟️ Centro de Control Live Gameday Ticker")
     st.markdown(f"Monitoreo directo del diamante: **{juego['vis_name']}** vs **{juego['loc_name']}**")
     
-    # Panel en Vivo Reactivo
     flecha_half = "▲ Alta" if live_data["is_top"] else "▼ Baja"
     estado_marcador_live = f"{juego['vis_siglas']} {live_data['runs_v']} - {live_data['runs_l']} {juego['loc_siglas']}"
     
@@ -548,20 +535,18 @@ elif st.session_state.vista_actual == "resumen":
         </div>
     """, unsafe_allow_html=True)
     
-    # Renderizado de bases ocupadas de forma segura y accesible
     b1, b2, b3 = live_data["bases"]
     st.markdown(f"**Ocupación de Almohadillas:** | {'1B [Ocupada]' if b1 else '1B [Limpia]'} | {'2B [Ocupada]' if b2 else '2B [Limpia]'} | {'3B [Ocupada]' if b3 else '3B [Limpia]'} |")
     
-    # TABLA DE ANOTACIÓN INNING POR INNING NATIVA Y SIN CONFLICTOS CROMÁTICOS
     st.markdown("### 📊 Pizarra Oficial de Anotaciones (Linescore)")
     
+    # Arreglo para prevenir errores de indexación si las entradas cambian dinámicamente
     columnas_linescore = ["Equipo"] + [str(e["num"]) for e in live_data["entradas_line"]] + ["R", "H", "E"]
-    fila_v = [juego["vis_name"]] + [str(e["away"]) for e in live_data["entradas_line"]] + [str(live_data["runs_v"]), str(live_data["hits_v"]), str(live_data["errors_v"])]
-    fila_l = [juego["loc_name"]] + [str(e["home"]) for e in live_data["entradas_line"]] + [str(live_data["runs_l"]), str(live_data["hits_l"]), str(live_data["errors_l"])]
+    fila_v = [juego["vis_siglas"]] + [str(e["away"]) for e in live_data["entradas_line"]] + [str(live_data["runs_v"]), str(live_data["hits_v"]), str(live_data["errors_v"])]
+    fila_l = [juego["loc_siglas"]] + [str(e["home"]) for e in live_data["entradas_line"]] + [str(live_data["runs_l"]), str(live_data["hits_l"]), str(live_data["errors_l"])]
     
-    st.table([fila_v, fila_l], )
+    st.table([dict(zip(columnas_linescore, fila_v)), dict(zip(columnas_linescore, fila_l))])
     
-    # DESGLOSE SIMPLIFICADO DE JUGADAS (Mejora 2 - Exclusivamente Scoring Plays)
     st.markdown("### 📝 Historial de Anotaciones (Scoring Plays)")
     if live_data["scoring_plays"]:
         for play_txt in reversed(live_data["scoring_plays"]):
@@ -569,13 +554,12 @@ elif st.session_state.vista_actual == "resumen":
     else:
         st.write("_No se han registrado carreras anotadas en el juego actual._")
 
-    # Bucle de re-ejecución temporizada controlada en segundo plano si el Live está activo
     if st_autorefresh and live_data["activo"]:
         time.sleep(7)
         st.rerun()
 
 # =====================================================================
-# RENDER: CORRECCIÓN COMPLETA DE RENDIMIENTO AVANZADO (Mejora 7 NATIVA)
+# RENDER: CORRECCIÓN COMPLETA DE RENDIMIENTO AVANZADO
 # =====================================================================
 elif st.session_state.vista_actual == "pronostico":
     juego = st.session_state.juego_foco
@@ -584,7 +568,6 @@ elif st.session_state.vista_actual == "pronostico":
     st.markdown(f"## 🎯 Matriz de Rendimiento Técnico Comparativo")
     st.markdown(f"Análisis Avanzado de Coeficientes Sabermétricos del Enfrentamiento.")
     
-    # KPIs Superiores
     c1, c2, c3 = st.columns(3)
     with c1: st.metric("Marcador Proyectado", f"{juego['vis_siglas']} {pred['runs_v']} - {pred['runs_l']} {juego['loc_siglas']}")
     with c2: st.metric(f"Probabilidad {juego['vis_siglas']}", f"{pred['prob_v']}%")
@@ -593,7 +576,6 @@ elif st.session_state.vista_actual == "pronostico":
     st.markdown("---")
     st.markdown("### 📊 Comparativa de Coeficientes Avanzados Sabermétricos")
     
-    # MEJORA 7: Eliminación absoluta de código HTML crudo. Renderizado robusto mediante st.dataframe nativo.
     metricas_claves = [
         ("OPS Colectivo (On-Base plus Slugging)", "ops", False),
         ("wRC+ Ajustado (Weighted Runs Created)", "wrc", False),
@@ -612,7 +594,6 @@ elif st.session_state.vista_actual == "pronostico":
         val_v = pred["v"][key]
         val_l = pred["l"][key]
         
-        # Lógica de ventaja estratégica
         if is_inverse:
             v_gana = val_v < val_l
             diff = round(abs(val_l - val_v), 3)
@@ -622,7 +603,6 @@ elif st.session_state.vista_actual == "pronostico":
             
         equipo_ventaja = juego["vis_siglas"] if v_gana else juego["loc_siglas"]
         
-        # Formateo estricto string legible
         v_str = f"{val_v:.3f}" if val_v < 1.0 else f"{val_v:.2f}"
         l_str = f"{val_l:.3f}" if val_l < 1.0 else f"{val_l:.2f}"
         
@@ -634,19 +614,16 @@ elif st.session_state.vista_actual == "pronostico":
             "Ventaja": equipo_ventaja
         })
         
-    # Renderizado por Dataframe nativo interactivo con alto contraste
     st.dataframe(
         filas_dataframe,
         use_container_width=True,
         hide_index=True
     )
     
-    # Vectores de Fortaleza Estructural
     st.markdown("### 📉 Diferencial de Vectores de Fortaleza Estructural")
     for lbl, vals in pred["fortalezas"].items():
         draw_bar_premium(lbl, vals[0], vals[1], juego["vis_name"], juego["loc_name"])
         
-    # Front-Office Sabermetric Report
     st.markdown("### 📌 Informe Técnico de Análisis (Front-Office Report)")
     fav_gl = juego["vis_name"] if pred["idx_v"] > pred["idx_l"] else juego["loc_name"]
     st.info(f"""
