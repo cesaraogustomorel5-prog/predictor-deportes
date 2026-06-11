@@ -101,15 +101,20 @@ partidos_api = cargar_api_mlb(fecha_hoy.strftime('%Y-%m-%d'))
 opciones_desplegable = []
 for nombre, info in partidos_api.items():
     if "postponed" in info["detalle"].lower() or "suspended" in info["detalle"].lower():
-        continue # Se gestiona abajo
+        continue
     # Condición: Solo partidos que no han empezado (Hora actual < Hora del juego)
     if fecha_hoy.time() < info["hora"] and info["status"] == "Preview":
         opciones_desplegable.append(nombre)
 
 opciones_desplegable.append("➕ ENTRADA MANUAL / EDITAR EQUIPOS")
 
-# --- INTERFAZ DE SELECCIÓN ---
-st.markdown(f"### 🗓️ Partidos Activos del Día: {fecha_hoy.strftime('%d de %B, %Y')}")
+# --- INTERFAZ DE SELECCIÓN EN ESPAÑOL ---
+# Traducir meses a español de forma manual y segura
+meses_es = {"January": "Enero", "February": "Febrero", "March": "Marzo", "April": "Abril", "May": "Mayo", "June": "Junio", "July": "Julio", "August": "Agosto", "September": "Septiembre", "October": "Octubre", "November": "Noviembre", "December": "Diciembre"}
+mes_ingles = fecha_hoy.strftime('%B')
+mes_espanol = meses_es.get(mes_ingles, mes_ingles)
+
+st.markdown(f"### 🗓️ Partidos Activos del Día: {fecha_hoy.strftime('%d')} de {mes_espanol}, {fecha_hoy.strftime('%Y')}")
 
 # Alerta si hay partidos suspendidos en el calendario real
 for nombre, info in partidos_api.items():
@@ -146,9 +151,7 @@ if equipo_loc_final and equipo_loc_final != "-- Seleccionar --" and not error_de
         error_detectado = True
 
 # --- 7. BASE DE DATOS DIARIA (SCRAPING SIMULADO DE ESTADÍSTICAS COMPLETA) ---
-# Todos estos datos se actualizan diariamente basándose en las métricas de los 30 equipos
 def base_datos_estratificada(nombre_equipo):
-    # Diccionario con analítica real diaria de las 13 variables solicitadas
     datos_maestros = {
         "Los Angeles Dodgers": {"wrc": 122, "avg": .258, "ops": .790, "era_ab": 2.10, "whip_ab": 0.88, "xera": 2.45, "fip": 2.30, "k_bb": 4.1, "bp_whip": 1.12, "bp_era": 3.45, "bp_split_lhp": 3.20, "bp_split_rhp": 3.55, "last10": "7-3", "cuota": -160, "umpire": 0.1, "park": 1.05},
         "Pittsburgh Pirates": {"wrc": 92, "avg": .230, "ops": .670, "era_ab": 4.80, "whip_ab": 1.42, "xera": 4.65, "fip": 4.80, "k_bb": 2.2, "bp_whip": 1.38, "bp_era": 4.10, "bp_split_lhp": 4.40, "bp_split_rhp": 3.95, "last10": "4-6", "cuota": +140, "umpire": 0.1, "park": 1.05},
@@ -165,30 +168,29 @@ if not error_detectado and equipo_vis_final and equipo_loc_final and equipo_vis_
         stats_vis = base_datos_estratificada(equipo_vis_final)
         stats_loc = base_datos_estratificada(equipo_loc_final)
         
-        # Integración de las 13 variables en el Algoritmo Predictor
+        # Algoritmo Predictor Cruzado
         carreras_proyectadas_vis = (5.0 * (stats_vis["wrc"]/100)) + (stats_loc["whip_ab"] * 0.4) - (stats_vis["era_ab"] * 0.1) + stats_vis["umpire"]
         carreras_proyectadas_loc = (4.2 * (stats_loc["wrc"]/100)) + (stats_vis["whip_ab"] * 0.3) - (stats_loc["era_ab"] * 0.1) + stats_vis["umpire"]
         
-        # Ajuste geográfico por estadio y parque
         carreras_proyectadas_vis *= stats_vis["park"]
         carreras_proyectadas_loc *= stats_vis["park"]
         
-        # 10,000 Simulaciones Estocásticas de Montecarlo (Simulación de Poisson)
+        # 10,000 Simulaciones Estocásticas de Montecarlo
         sim_vis = np.random.poisson(carreras_proyectadas_vis, 10000)
         sim_loc = np.random.poisson(carreras_proyectadas_loc, 10000)
         
-        # A. Procesamiento Matemático - Moneyline
+        # A. Moneyline
         prob_vis = (np.sum(sim_vis > sim_loc) / 10000) * 100
         prob_loc = 100 - prob_vis
         ganador_ml = equipo_vis_final if prob_vis > prob_loc else equipo_loc_final
         porcentaje_ml = max(prob_vis, prob_loc)
         
-        # B. Procesamiento Matemático - Over/Under (Línea Base: 8.5)
+        # B. Over/Under (Línea Base: 8.5)
         prob_over = (np.sum((sim_vis + sim_loc) > 8.5) / 10000) * 100
         veredicto_ou = "OVER 8.5" if prob_over > 50 else "UNDER 8.5"
         porcentaje_ou = prob_over if prob_over > 50 else (100 - prob_over)
         
-        # C. Procesamiento Matemático - Runline (-1.5 / +1.5)
+        # C. Runline (-1.5 / +1.5)
         if prob_vis > prob_loc:
             prob_cubrir_fav = (np.sum((sim_vis - sim_loc) >= 2) / 10000) * 100
             veredicto_rl = f"{equipo_vis_final} -1.5" if prob_cubrir_fav > 52.5 else f"{equipo_loc_final} +1.5"
@@ -198,8 +200,7 @@ if not error_detectado and equipo_vis_final and equipo_loc_final and equipo_vis_
             veredicto_rl = f"{equipo_loc_final} -1.5" if prob_cubrir_fav > 52.5 else f"{equipo_vis_final} +1.5"
             porcentaje_rl = prob_cubrir_fav if prob_cubrir_fav > 52.5 else (100 - prob_cubrir_fav)
             
-        # D. Cálculo de Value Bet (Valor de la Apuesta)
-        # Convertimos la cuota americana del casino a probabilidad implícita
+        # D. Cálculo de Value Bet
         cuota_objetivo = stats_vis["cuota"] if prob_vis > prob_loc else stats_loc["cuota"]
         if cuota_objetivo < 0:
             prob_casino = (-cuota_objetivo) / (-cuota_objetivo + 100) * 100
@@ -219,19 +220,13 @@ if not error_detectado and equipo_vis_final and equipo_loc_final and equipo_vis_
         with col3:
             st.metric(label="⚾ RUNLINE (HÁNDICAP)", value=veredicto_rl, delta=f"{round(porcentaje_rl, 1)}% Estabilidad")
 
-        # Tarjeta Especial de Value Bet si hay ventaja sobre el casino
         if edge > 4.0:
             st.markdown(f"<div class='status-box' style='border-color:#00ff66; color:#00ff66;'>🔥 <b>ALERTA DE VALUE BET DETECTADA:</b> El modelo matemático posee un <b>Edge del {round(edge, 1)}%</b> sobre la cuota del casino ({cuota_objetivo}) para el Moneyline. Entrada recomendada de alta eficiencia.</div>", unsafe_allow_html=True)
 
-        # --- 9. RESEÑAS TÉCNICAS EXPLICATIVAS EXIGIDAS ---
+        # --- 9. RESEÑAS TÉCNICAS EXPLICATIVAS ---
         st.markdown("---")
         st.markdown("### 📋 Reseñas Técnicas de los Resultados")
         
-        # Reseña Dinámica Moneyline
         st.write(f"**¿Por qué dio ese resultado en el Moneyline?:** El modelo se inclinó por **{ganador_ml}** debido a la ventaja crítica en el pitcheo abridor (Métrica ponderada de xERA/FIP) combinada con la estabilidad de su bullpen en las entradas tardías. El factor de forma reciente ({stats_vis['last10']} vs {stats_loc['last10']}) consolida la inercia ganadora proyectada por el software.")
-        
-        # Reseña Dinámica Over/Under
         st.write(f"**¿Por qué dio ese resultado en el Over/Under?:** La proyección de **{veredicto_ou}** se determinó cruzando el factor de parque (*Park Factor* de {stats_vis['park']}) con la tendencia del Umpire principal asignado para hoy. Al simular 10,000 veces el desgaste de los relevistas por splits cruzados (Zurdos/Derechos), el acumulado de carreras se estabilizó fuera de la línea comercial impuesta por Las Vegas.")
-        
-        # Reseña Dinámica Runline
         st.write(f"**¿Por qué dio ese resultado en el Runline?:** La selección de **{veredicto_rl}** responde directamente al diferencial estocástico. El simulador analiza que la ofensiva dominante posee un wRC+ de {max(stats_vis['wrc'], stats_loc['wrc'])} lo que incrementa la probabilidad de abrir el marcador por más de 2 carreras, o en su defecto, el rival tiene la suficiente solidez en su pitcheo para defender el hándicap de +1.5.")
