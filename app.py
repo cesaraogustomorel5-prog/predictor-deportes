@@ -33,11 +33,6 @@ st.markdown("""
         border-radius: 12px;
         padding: 14px;
         margin-bottom: 5px;
-        transition: all 0.2s ease;
-    }
-    .game-card:hover {
-        border-color: #00ff66;
-        box-shadow: 0 0 15px rgba(0, 255, 102, 0.1);
     }
     
     /* Filas de Equipos con Logos alineados */
@@ -58,7 +53,6 @@ st.markdown("""
     div[data-testid="stDateInput"] button { background-color: #161b22 !important; color: #ffffff !important; border: 1px solid #00ff66 !important; }
     
     /* Estilo para los Desplegables de Detalles (st.expander) */
-    .stDetailsContainer { margin-bottom: 15px; }
     div[data-testid="stExpander"] {
         background-color: #161b22 !important;
         border: 1px solid #30363d !important;
@@ -170,6 +164,7 @@ def cargar_cartelera_total_api(fecha_busqueda):
                 dt_et = dt_utc.astimezone(zona_horaria)
                 
                 lista_juegos.append({
+                    "id_juego": juego["gamePk"],
                     "vis_completo": nombre_vis_completo, "vis_name": vis_org, "vis_logo": vis_logo, "vis_score": score_vis,
                     "loc_completo": nombre_loc_completo, "loc_name": loc_org, "loc_logo": loc_logo, "loc_score": score_loc,
                     "status": abstract_status, "detalle": detailed_status, "inning_status": inning_texto,
@@ -178,6 +173,48 @@ def cargar_cartelera_total_api(fecha_busqueda):
     except:
         pass
     return lista_juegos
+
+# --- FUNCIÓN COMPLEMENTARIA: BUSCAR DETALLES REALES DEL PARTIDO ---
+def obtener_detalles_reales_partido(id_juego):
+    url = f"https://statsapi.mlb.com/api/v1.1/game/{id_juego}/feed/live"
+    reporte = {"linea_por_entrada": "No disponible", "hits_errores": "", "destacados": ""}
+    try:
+        res = requests.get(url, timeout=3).json()
+        linescore = res.get("liveData", {}).get("linescore", {})
+        
+        # 1. Boxscore de Carreras, Hits y Errores (RHE)
+        vis_teams = linescore.get("teams", {}).get("away", {})
+        loc_teams = linescore.get("teams", {}).get("home", {})
+        
+        reporte["hits_errores"] = (
+            f"🔹 **Visitante:** {vis_teams.get('runs', 0)} C | {vis_teams.get('hits', 0)} H | {vis_teams.get('errors', 0)} E\n"
+            f"🔹 **Local:** {loc_teams.get('runs', 0)} C | {loc_teams.get('hits', 0)} H | {loc_teams.get('errors', 0)} E"
+        )
+        
+        # 2. Desglose de entradas jugadas
+        entradas = linescore.get("innings", [])
+        linea_vis = []
+        linea_loc = []
+        for e in entradas:
+            num_in = e.get("num")
+            linea_vis.append(f"Inning {num_in}: {e.get('away', {}).get('runs', 0)} C")
+            linea_loc.append(f"Inning {num_in}: {e.get('home', {}).get('runs', 0)} C")
+        
+        reporte["linea_por_entrada"] = (
+            f"▫️ *Progreso Visitante:* {', '.join(linea_vis) if linea_vis else 'Sin turnos'}\n\n"
+            f"▫️ *Progreso Local:* {', '.join(linea_loc) if linea_loc else 'Sin turnos'}"
+        )
+        
+        # 3. Jugadores Líderes o Decisiones (Si ya finalizó o está en curso)
+        info_juego = res.get("gameData", {})
+        probables = info_juego.get("probablePitchers", {})
+        p_vis = probables.get("away", {}).get("fullName", "Por anunciar")
+        p_loc = probables.get("home", {}).get("fullName", "Por anunciar")
+        reporte["destacados"] = f"Pitcher Abridor Visitante: {p_vis} | Pitcher Abridor Local: {p_loc}"
+        
+    except:
+        reporte["linea_por_entrada"] = "Detalles del partido en preparación o no disponibles."
+    return reporte
 
 cartelera_partidos = cargar_cartelera_total_api(fecha_str)
 
@@ -227,7 +264,7 @@ def ejecutar_simulacion_quant(vis, loc):
         
     return ganador_ml, porcentaje_ml, veredicto_ou, porcentaje_ou, veredicto_rl, porcentaje_rl, v_stats, l_stats
 
-# --- 6. SEPARACIÓN Y ORDENAMIENTO DE PARTIDOS (ACTIVOS ARRIBA, FINALIZADOS ABAJO) ---
+# --- 6. SEPARACIÓN Y ORDENAMIENTO DE PARTIDOS ---
 st.markdown("---")
 
 if not cartelera_partidos:
@@ -240,66 +277,76 @@ else:
 
     for idx, j in enumerate(cartelera_ordenada):
         
+        # Definición del badge de estado
         if j["status"] == "Live":
             status_html = f"<span class='status-badge badge-live'>🔴 {j['inning_status'].upper()}</span>"
-            score_vis_html = f"<span class='team-score'>{j['vis_score']}</span>"
-            score_loc_html = f"<span class='team-score'>{j['loc_score']}</span>"
+            marcador_vis = f"<span class='team-score'>{j['vis_score']}</span>"
+            marcador_loc = f"<span class='team-score'>{j['loc_score']}</span>"
         elif j["status"] == "Final":
             status_html = f"<span class='status-badge badge-final'>🏁 {j['inning_status'].upper()}</span>"
-            score_vis_html = f"<span class='team-score'>{j['vis_score']}</span>"
-            score_loc_html = f"<span class='team-score'>{j['loc_score']}</span>"
+            marcador_vis = f"<span class='team-score'>{j['vis_score']}</span>"
+            marcador_loc = f"<span class='team-score'>{j['loc_score']}</span>"
         else: 
             status_html = f"<span class='status-badge badge-preview'>🕒 {j['hora_texto']}</span>"
-            score_vis_html = ""
-            score_loc_html = ""
+            marcador_vis = ""
+            marcador_loc = ""
 
         if "postponed" in j["detalle"].lower() or "suspended" in j["detalle"].lower():
             status_html = f"<span class='status-badge badge-final'>⚠️ POSPUESTO</span>"
 
-        # Renderizar la tarjeta visual integrada
-        st.markdown(f"""
-            <div class='game-card'>
-                <div class='game-header'>
-                    {status_html}
-                </div>
-                <div class='team-container'>
-                    <div class='team-identity'>
-                        <img class='team-logo' src='{j['vis_logo']}'>
-                        <span class='team-name'>{j['vis_name']}</span>
-                    </div>
-                    {score_vis_html}
-                </div>
-                <div class='team-container'>
-                    <div class='team-identity'>
-                        <img class='team-logo' src='{j['loc_logo']}'>
-                        <span class='team-name'>{j['loc_name']}</span>
-                    </div>
-                    {score_loc_html}
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        # REPARACIÓN DEFINITIVA: Guardamos toda la tarjeta en un string lineal sin saltos peligrosos
+        html_tarjeta = (
+            f"<div class='game-card'>"
+                f"<div class='game-header'>{status_html}</div>"
+                f"<div class='team-container'>"
+                    f"<div class='team-identity'>"
+                        f"<img class='team-logo' src='{j['vis_logo']}'>"
+                        f"<span class='team-name'>{j['vis_name']}</span>"
+                    f"</div>"
+                    f"{marcador_vis}"
+                f"</div>"
+                f"<div class='team-container'>"
+                    f"<div class='team-identity'>"
+                        f"<img class='team-logo' src='{j['loc_logo']}'>"
+                        f"<span class='team-name'>{j['loc_name']}</span>"
+                    f"</div>"
+                    f"{marcador_loc}"
+                f"</div>"
+            f"</div>"
+        )
         
-        # --- NUEVA FUNCIÓN ABRE/CIERRA (st.expander) ---
-        # Reemplaza el botón rígido por un menú dinámico de un solo clic
-        with st.expander(f"📊 Ver detalles y simulación estadística"):
+        # Pintamos la tarjeta de forma segura
+        st.markdown(html_tarjeta, unsafe_allow_html=True)
+        
+        # --- MENÚ EXPANDIBLE DESPLEGABLE CON UN CLIC (ABRE / CIERRA) ---
+        with st.expander(f"📊 Detalles del Encuentro y Simulación Estadística"):
+            
+            # Consultamos la sub-api en tiempo real de lo que está ocurriendo
+            info_real = obtener_detalles_reales_partido(j["id_juego"])
+            
+            st.markdown("<p style='color:#00ff66; font-size:1rem; font-family:monospace; font-weight:bold; margin-top:5px;'>📝 LO QUE SUCEDIÓ EN EL PARTIDO (REAL TIME):</p>", unsafe_allow_html=True)
+            st.markdown(f"""
+            {info_real['hits_errores']}
+            
+            **📍 Pizarra de Carreras por Entrada:**
+            {info_real['linea_por_entrada']}
+            
+            **📋 Información de campo:**
+            * {info_real['destacados']}
+            * Estado oficial según sistema: *{j['detalle']}*
+            """)
+            
+            st.markdown("<hr style='border: 1px dashed #30363d; margin: 10px 0;'>", unsafe_allow_html=True)
+            st.markdown("<p style='color:#00ff66; font-size:1rem; font-family:monospace; font-weight:bold;'>🤖 PREDICCIÓN & SIMULACIÓN QUANT (10,000 ESCENARIOS):</p>", unsafe_allow_html=True)
+            
             res_ml, por_ml, res_ou, por_ou, res_rl, por_rl, v_s, l_s = ejecutar_simulacion_quant(j["vis_completo"], j["loc_completo"])
             
-            st.markdown("<br>", unsafe_allow_html=True)
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric(label="🏆 PROYECCIÓN GANADOR (MONEYLINE)", value=MAPEO_ORGANIZACIONES.get(res_ml, {"nombre": res_ml})["nombre"], delta=f"{round(por_ml, 1)}% Probabilidad")
+                st.metric(label="🏆 GANADOR (MONEYLINE)", value=MAPEO_ORGANIZACIONES.get(res_ml, {"nombre": res_ml})["nombre"], delta=f"{round(por_ml, 1)}% Probabilidad")
             with col2:
                 st.metric(label="📈 LÍNEA (OVER / UNDER)", value=res_ou, delta=f"{round(por_ou, 1)}% Certeza")
             with col3:
                 st.metric(label="⚾ HÁNDICAP (RUNLINE)", value=res_rl, delta=f"{round(por_rl, 1)}% Estabilidad")
-            
-            # Sub-apartado de lo que pasó o métricas clave internas
-            st.markdown("<p style='color:#00ff66; font-size:0.9rem; font-family:monospace; margin-top:10px;'>📋 REPORTE DE JUEGO & MÉTRICAS SABERMÉTRICAS:</p>", unsafe_allow_html=True)
-            st.markdown(f"""
-            * **Estado Actual del Encuentro:** {j['detalle']} ({j['inning_status'] if j['inning_status'] else 'Programado'})
-            * **Métricas Esperadas Visitante ({j['vis_name']}):** Promedio de bateo de {v_s['avg']} | OPS global de {v_s['ops']}
-            * **Métricas Esperadas Local ({j['loc_name']}):** Promedio de bateo de {l_s['avg']} | OPS global de {l_s['ops']}
-            * **Factor de Estadio e Impacto Climático:** Multiplicador de carreras de {l_s['park_factor']}x con vientos promedios de {l_s['clima_wind']} mph.
-            """)
         
-        st.markdown("<div style='margin-bottom:15px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-bottom:12px;'></div>", unsafe_allow_html=True)
