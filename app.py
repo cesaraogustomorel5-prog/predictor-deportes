@@ -138,8 +138,8 @@ DICCIONARIO_SISTEMA = {
         "analisis_tec": "テクニカル分析", "volver": "スケジュールに戻る", "ops": "チームOPS", "wrc": "調整済wRC+",
         "iso": "純長打率 (ISO)", "babip": "チームBABIP", "hard_hit": "ハードヒット率 %", "barrel": "チームバレル %",
         "xera": "予測xERA", "xfip": "安定化xFIP", "whip": "総合WHIP", "b_era": "ブルペンERA",
-        "matriz_coef": "高度セイバーメトリクス係数マトリクス", "marcador_proy": "予測スコア",
-        "certeza": "アルゴリズム確実性", "historico_anot": "得点プレー詳細ログ", "sin_carreras": "ランが記録されていません。",
+        "matriz_coef": "高度セイバーメトリクス係수マトリクス", "marcador_proy": "予測スコア",
+        "certeza": "アルゴリズム確実성", "historico_anot": "得点プレー詳細ログ", "sin_carreras": "ランが記録されていません。",
         "pizarra": "公式ラインスコア表", "conteo": "カウント", "outs": "アウト", "ocupacion": "ランナー状況",
         "idioma_lbl": "システム言語", "adjuntar": "メディア/ファイルの添付", "tema_control": "テーマ切り替え"
     },
@@ -230,7 +230,6 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-    /* CARDS BLINDADAS CONTRA ERRORES */
     .sport-match-card {{
         background: {css_card} !important;
         border: 1px solid {css_border} !important;
@@ -632,7 +631,6 @@ if st.session_state.vista_actual == "dashboard":
                 marcador_v = "<span style='color:rgba(255,255,255,0.2); font-size:0.9rem;'>-</span>"
                 marcador_l = "<span style='color:rgba(255,255,255,0.2); font-size:0.9rem;'>-</span>"
                 
-            # SANITIZACIÓN ABSOLUTA PRE-RENDERIZADO HTML
             j_id = str(juego['id_juego'])
             v_logo = str(juego['vis_logo'])
             v_name = str(juego['vis_name'])
@@ -650,7 +648,6 @@ if st.session_state.vista_actual == "dashboard":
             proj_v = str(pred['runs_v'])
             proj_l = str(pred['runs_l'])
             
-            # Construcción Blindada sin interferencia de comillas dinámicas internas
             bloque_tarjeta_completo = f"""
                 <div class="{card_class}">
                     {tag_destacado_html}
@@ -748,13 +745,13 @@ elif st.session_state.vista_actual == "pronostico":
     st.dataframe(dataset_limpio, use_container_width=True, hide_index=True)
 
 # =====================================================================
-# MODULO 7: CHAT DE SOPORTE INTERACTIVO MULTIMEDIA (CORREGIDO)
+# MODULO 7: CHAT DE SOPORTE INTERACTIVO (BLINDADO - SIN ST.FORM)
 # =====================================================================
 with st.sidebar:
     st.markdown("---")
     st.markdown(f"### 💬 {txt('soporte')}")
     
-    # Renderizado del historial de conversión dinámico
+    # Historial de chat
     for msg in st.session_state.chat_historial:
         clase_origen = "msg-usuario" if msg["origen"] == "usuario" else "msg-sistema"
         st.markdown(f"""
@@ -766,25 +763,22 @@ with st.sidebar:
         if "meta_adjunto" in msg:
             st.caption(f"📎 Archivo: {msg['meta_adjunto']}")
 
-    # SOLUCIÓN AL TYPEERROR: El file_uploader se ejecuta FUERA del formulario
-    archivo_usuario = st.file_uploader(txt("adjuntar"), type=["png", "jpg", "mp4", "mov", "csv", "txt", "pdf"], label_visibility="visible")
-
-    # El formulario ahora procesa los strings de manera limpia y segura
-    with st.form("quantum_chat_form", clear_on_submit=True):
-        input_texto = st.text_input("Chat Msg", placeholder=txt("mensaje_placeholder"), label_visibility="collapsed")
-        bot_enviar = st.form_submit_button(txt("enviar"), use_container_width=True)
-        
-        if bot_enviar and (input_texto or archivo_usuario):
+    # Entrada de datos directa sin usar st.form (Elimina el TypeError para siempre)
+    archivo_usuario = st.file_uploader(txt("adjuntar"), type=["png", "jpg", "mp4", "mov", "csv", "txt", "pdf"], label_visibility="visible", key="sidebar_file_uploader")
+    input_texto = st.text_input("Chat Msg", placeholder=txt("mensaje_placeholder"), label_visibility="collapsed", key="sidebar_chat_input")
+    
+    if st.button(txt("enviar"), use_container_width=True, key="sidebar_send_btn"):
+        if input_texto or archivo_usuario:
             stamp = datetime.now(ZONA_HORARIA).strftime('%I:%M %p')
             nombre_archivo = archivo_usuario.name if archivo_usuario is not None else None
             
-            # Registrar mensaje del usuario en el historial
+            # Registrar mensaje de usuario
             msg_u = {"origen": "usuario", "texto": input_texto if input_texto else f"[Fichero: {nombre_archivo}]", "timestamp": stamp}
             if nombre_archivo: 
                 msg_u["meta_adjunto"] = nombre_archivo
             st.session_state.chat_historial.append(msg_u)
             
-            # Respuesta simulada inteligente por el Agente Cuántico
+            # Respuesta del Agente Cuántico
             respuesta_bot = "Mensaje de texto recibido por la IA. Optimizando respuesta analítica."
             if nombre_archivo:
                 respuesta_bot = f"Fichero '{nombre_archivo}' indexado con éxito. Ejecutando escaneo cuántico en paralelo para identificar patrones sabermétricos."
