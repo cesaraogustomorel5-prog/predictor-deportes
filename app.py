@@ -418,8 +418,8 @@ def analizar_matriz_sabermetrica_completa(vis_full, loc_full):
     carreras_loc_proyectadas = max(1.5, (potencial_ofensivo_loc * 6.5) * (pitcheo_oponente_vis / 4.0))
     
     # Generación de la Distribución de Probabilidad
-    total_esperado = carreras_vis_proyectadas + carreras_loc_proyectadas
-    prob_vis_gana = (carreras_vis_proyectadas / total_esperado) * 100
+    total_expected = carreras_vis_proyectadas + carreras_loc_proyectadas
+    prob_vis_gana = (carreras_vis_proyectadas / total_expected) * 100
     prob_loc_gana = 100.0 - prob_vis_gana
     
     # Definición de Variables de Retorno Estructurales
@@ -438,7 +438,8 @@ def analizar_matriz_sabermetrica_completa(vis_full, loc_full):
     else:
         estrellas, label_c = "★★☆☆☆", "Baja"
         
-    linea_corte_ou = 7.5 if total_expected := (carreras_vis_proyectadas + carreras_loc_proyectadas) < 8.0 else (8.5 if total_expected < 9.5 else 9.5)
+    # --- CORRECCIÓN DE SINTAXIS REALIZADA AQUÍ ---
+    linea_corte_ou = 7.5 if total_expected < 8.0 else (8.5 if total_expected < 9.5 else 9.5)
     veredicto_ou = f"OVER {linea_corte_ou}" if total_expected > linea_corte_ou else f"UNDER {linea_corte_ou}"
     
     # Cálculo Runline
@@ -768,7 +769,7 @@ elif st.session_state.vista_actual == "pronostico":
     st.markdown(f"""
     Nuestra evaluación técnica realiza una correlación avanzada de rendimiento mediante el cruce ponderado de los vectores analíticos estructurales de ambas organizaciones:
     
-    * **Análisis de Capacidad Colectiva:** La ofensiva de **{juego['vis_name']}** muestra un balance sólido fundamentado en su OPS colectivo de **{res['v_stats']['ops']:.3f}**, permitiéndole optimizar sus turnos frente al cuerpo de lanzadores oponente. Como contraparte, la escuadra de **{juego['loc_name']}** sostiene ventajas competitivas debido a sus métricas de Hard Hit y un porcentaje de embasamiento estructurado en parques de estas dimensiones.
+    * **Análisis de Capacidad Colectiva:** La ofensiva de **{juego['vis_name']}** muestra un balance sólido fundamentado en su OPS colectivo de **{res['v_stats']['ops']:.3f}**, permitiéndole optimizar sus turnos frente al cuerpo de lanzadores oponente. Como contraparte, la escuadra de **{juego['loc_name']}** sostiene ventajas competitivas debido a sus métricas de Hard Hit y un porcentaje de embasamiento estructurado en parques de estas dimensions.
     * **Ponderación del Pitcheo:** El análisis pormenorizado del pitcheo abridor y el cuerpo de relevistas intermedios (Bullpen ERA) indica una ventaja en la estabilidad de las entradas tardías para el equipo proyectado como ganador, minimizando las ventanas de anotación rivales en situaciones bajo presión.
     * **Corte Justificado del Total:** La estimación de carreras agregadas se deriva rigurosamente de la interacción entre el promedio de bases por entrada de los bateadores y la efectividad ajustada (xERA/FIP) de los lanzadores titulares, ofreciendo un escenario técnico ideal para fundamentar la selección de **{res['ou']}** de forma empírica y balanceada.
     """)
