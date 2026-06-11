@@ -35,33 +35,36 @@ WEIGHT_BULLPEN = 0.20
 WEIGHT_DEFENSE = 0.15
 WEIGHT_MOMENTUM = 0.10
 
+# Capturar cambio de estado desde el Switch estilo iPhone antes de renderizar estilos
+if "temp_theme_toggle" in st.query_params:
+    st.session_state.tema_is_dark = st.query_params["temp_theme_toggle"] == "dark"
+
 # =====================================================================
 # MODULO 2: SISTEMA DE DISEÑO ADAPTATIVO TOTAL (MODO CLARO / OSCURO)
 # =====================================================================
+# Color de texto FIJO y universal de alto contraste para ambos temas
+css_text_fixed = "#8e8e93"
+
 if st.session_state.tema_is_dark:
-    css_bg = "#070a13"
-    css_card = "#0f172a"
-    css_text = "#f8fafc"
-    css_accent = "#38bdf8"
-    css_border = "#1e293b"
+    css_bg = "#000000"             # Negro puro estilo iOS
+    css_card = "#1c1c1e"           # Gris oscuro estilo iOS
+    css_toggle_bg = "#32d74b"      # Verde activo de Apple
+    css_border = "#2c2c2e"
     css_muted = "#64748b"
+    css_accent = "#38bdf8"
     css_success = "#10b981"
     css_danger = "#ef4444"
-    css_shadow = "rgba(56, 189, 248, 0.08)"
-    css_table_header = "#1e293b"
-    css_btn_bg = "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)"
+    css_shadow = "rgba(56, 189, 248, 0.04)"
 else:
-    css_bg = "#f8fafc"
-    css_card = "#ffffff"
-    css_text = "#0f172a"
-    css_accent = "#2563eb"
-    css_border = "#cbd5e1"
+    css_bg = "#f2f2f7"             # Gris claro estilo iOS
+    css_card = "#ffffff"           # Blanco puro estilo iOS
+    css_toggle_bg = "#e9e9ea"      # Gris apagado de Apple
+    css_border = "#e5e5ea"
     css_muted = "#64748b"
+    css_accent = "#2563eb"
     css_success = "#16a34a"
     css_danger = "#dc2626"
     css_shadow = "rgba(15, 23, 42, 0.05)"
-    css_table_header = "#e2e8f0"
-    css_btn_bg = "linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)"
 
 st.markdown(f"""
     <style>
@@ -69,8 +72,16 @@ st.markdown(f"""
     
     .stApp {{
         background-color: {css_bg} !important;
-        color: {css_text} !important;
+        color: {css_text_fixed} !important;
         font-family: 'Inter', sans-serif;
+    }}
+    
+    /* CONTROL ABSOLUTO DE COLORES DE LETRA EN COMPONENTES NATIVOS */
+    /* Fuerza a que TODAS las letras del sistema adopten el mismo color que el nombre de los equipos */
+    .stApp p, .stApp span, .stApp label, .stApp h1, .stApp h2, .stApp h3, .stApp div, 
+    .stMarkdown, .stMetric, [data-testid="stMetricValue"], [data-testid="stMetricLabel"],
+    table, th, td, tr, .stDataFrame {{
+        color: {css_text_fixed} !important;
     }}
     
     /* ENCABEZADO PREMIUM MEJORADO */
@@ -106,7 +117,7 @@ st.markdown(f"""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }}
-    .sub-title-txt {{ color: #64748b; font-size: 0.85rem; font-weight: 500; margin: 4px 0 0 0 !important; }}
+    .sub-title-txt {{ color: #64748b !important; font-size: 0.85rem; font-weight: 500; margin: 4px 0 0 0 !important; }}
 
     /* TARJETAS PREMIUM ADAPTATIVAS */
     .premium-card {{
@@ -116,12 +127,12 @@ st.markdown(f"""
         padding: 20px;
         margin-bottom: 16px;
         box-shadow: 0 4px 20px {css_shadow};
-        color: {css_text} !important;
+        color: {css_text_fixed} !important;
     }}
     .scoreboard-row {{ display: flex; justify-content: space-between; align-items: center; margin: 12px 0; }}
     .team-box {{ display: flex; align-items: center; gap: 14px; }}
     .team-img {{ width: 34px; height: 34px; object-fit: contain; }}
-    .team-txt {{ font-size: 1.15rem; font-weight: 700; color: {css_text} !important; }}
+    .team-txt {{ font-size: 1.15rem; font-weight: 700; color: {css_text_fixed} !important; }}
     .score-txt {{ font-size: 1.8rem; font-weight: 800; color: {css_accent} !important; font-family: 'JetBrains Mono', monospace; }}
     .score-empty {{ width: 35px; height: 25px; }}
     
@@ -130,7 +141,7 @@ st.markdown(f"""
     
     /* GAMEDAY LIVE TICKER PANEL */
     .gameday-ticker {{
-        background: linear-gradient(140deg, {css_card} 0%, rgba(15,23,42,0.05) 100%);
+        background: {css_card};
         border: 1px solid {css_danger};
         border-radius: 12px;
         padding: 16px;
@@ -146,12 +157,66 @@ st.markdown(f"""
     .play-by-play-box {{
         max-height: 180px; overflow-y: auto; background-color: rgba(0,0,0,0.05);
         padding: 10px; border-radius: 6px; border: 1px solid {css_border};
-        font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: {css_text};
+        font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: {css_text_fixed};
     }}
     
     /* RESALTADORES NATIVOS PARA ESTILOS DINÁMICOS */
     .text-success-custom {{ color: {css_success} !important; font-weight: bold; }}
     .text-danger-custom {{ color: {css_danger} !important; font-weight: bold; }}
+
+    /* --- INTERRUPTOR/SWITCH ESTILO IPHONE --- */
+    .ios-switch-container {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: {css_card};
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid {css_border};
+        margin-bottom: 20px;
+    }}
+    .ios-switch-label {{
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: {css_text_fixed} !important;
+    }}
+    .switch {{
+        position: relative;
+        display: inline-block;
+        width: 51px;
+        height: 31px;
+    }}
+    .switch input {{
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }}
+    .slider {{
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #e9e9ea;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 34px;
+    }}
+    .slider:before {{
+        position: absolute;
+        content: "";
+        height: 27px;
+        width: 27px;
+        left: 2px;
+        bottom: 2px;
+        background-color: #ffffff;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 50%;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    }}
+    input:checked + .slider {{
+        background-color: #32d74b;
+    }}
+    input:checked + .slider:before {{
+        transform: translateX(20px);
+    }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -169,24 +234,26 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # =====================================================================
-# MODULO 3: BOTONES FLOTANTES (SWITCH DE TEMA & REGRESO)
+# MODULO 3: BOTONES FLOTANTES & SWITCH INTERACTIVO TIPO IPHONE
 # =====================================================================
-tema_icono = "☀️" if st.session_state.tema_is_dark else "🌙"
-tema_label = "Modo Claro" if st.session_state.tema_is_dark else "Modo Oscuro"
-
-st.markdown(f"""
-    <div style='position: fixed; bottom: 30px; left: 30px; z-index: 99999;'>
-        <form action='/' method='get'>
-            <input type='hidden' name='trigger_theme' value='1'>
-        </form>
-    </div>
-""", unsafe_allow_html=True)
-
 with st.sidebar:
     st.markdown("### 🛠️ Interfaz Global")
-    if st.button(f"{tema_icono} Cambiar a {tema_label}", key="global_theme_switcher"):
-        st.session_state.tema_is_dark = not st.session_state.tema_is_dark
-        st.rerun()
+    
+    # Renderizado del Switch estilo iPhone mediante inyección HTML y pasarela por URL states
+    checked_attr = "checked" if st.session_state.tema_is_dark else ""
+    target_theme = "light" if st.session_state.tema_is_dark else "dark"
+    texto_switch = "Modo Oscuro" if st.session_state.tema_is_dark else "Modo Claro"
+    
+    st.markdown(f"""
+        <div class='ios-switch-container'>
+            <span class='ios-switch-label'>{texto_switch}</span>
+            <label class='switch'>
+                <input type='checkbox' id='ios-theme-toggle' {checked_attr} 
+                       onclick="window.location.href='?temp_theme_toggle={target_theme}'">
+                <span class='slider'></span>
+            </label>
+        </div>
+    """, unsafe_allow_html=True)
 
 if st.session_state.vista_actual != "dashboard":
     st.markdown(f"""
@@ -230,7 +297,7 @@ MAPEO_ORGANIZACIONES = {
     "St. Louis Cardinals": {"nombre": "Cardinals", "id": 138, "siglas": "STL"},
     "Tampa Bay Rays": {"nombre": "Rays", "id": 139, "siglas": "TB"},
     "Texas Rangers": {"nombre": "Rangers", "id": 140, "siglas": "TEX"},
-    "Toronto Blue Jays": {"nombre": "Blue Jays", "id": 141, "siglas": "TOR"},
+    "Toronto Blue Jays": {"nombre": "Toronto Blue Jays", "id": 141, "siglas": "TOR"},
     "Washington Nationals": {"nombre": "Nationals", "id": 120, "siglas": "WSH"}
 }
 
@@ -332,11 +399,13 @@ def descargar_datos_live_gameday(id_juego):
             live_struct["outs"] = linescore.get("outs", 0)
             
             plays_node = data.get("liveData", {}).get("plays", {})
-            current_play = plays_node.get("currentPlay", {})
-            live_struct["balls"] = current_play.get("count", {}).get("balls", 0)
-            live_struct["strikes"] = current_play.get("count", {}).get("strikes", 0)
-            live_struct["bateador"] = current_play.get("matchup", {}).get("batter", {}).get("fullName", "Bateador")
-            live_struct["lanzador"] = current_play.get("matchup", {}).get("pitcher", {}).get("fullName", "Lanzador")
+            current_play = plays_node.get("count", {})
+            live_struct["balls"] = current_play.get("balls", 0)
+            live_struct["strikes"] = current_play.get("strikes", 0)
+            
+            current_play_node = plays_node.get("currentPlay", {})
+            live_struct["bateador"] = current_play_node.get("matchup", {}).get("batter", {}).get("fullName", "Bateador")
+            live_struct["lanzador"] = current_play_node.get("matchup", {}).get("pitcher", {}).get("fullName", "Lanzador")
             
             off_node = linescore.get("offense", {})
             live_struct["bases"] = ["first" in off_node, "second" in off_node, "third" in off_node]
@@ -450,10 +519,10 @@ if st.session_state.vista_actual == "dashboard":
     # Lista unificada ordenada: En curso -> Programados -> Finalizados
     cartelera_ordenada = j_vivo + j_preview + j_final
     
-    # Ajuste preciso de etiquetas según directrices del usuario
+    # Ajuste exacto de los títulos solicitados en la barra métrica superior
     k1, k2, k3 = st.columns(3)
     with k1: st.metric("Partidos del día", len(cartelera_total))
-    with k2: st.metric("Monitoreo Live", len(j_vivo))
+    with k2: st.metric("Partidos en curso", len(j_vivo))
     with k3: st.metric("Partidos finalizados", len(j_final))
     
     st.markdown("---")
@@ -465,13 +534,11 @@ if st.session_state.vista_actual == "dashboard":
             pred_quick = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
             
             if juego["status"] == "Live":
-                # Cambiado dinámicamente a "Partidos en curso" manteniendo la metadata del Inning
                 live_detail = juego['live_metadata'].replace("Live Gameday -", "").strip()
                 badge_lbl = f"🔴 Partidos en curso — {live_detail}" if "-" in juego['live_metadata'] else "🔴 Partidos en curso"
                 marcador_v = f"<span class='score-txt'>{juego['vis_score']}</span>"
                 marcador_l = f"<span class='score-txt'>{juego['loc_score']}</span>"
             elif juego["status"] == "Final":
-                # Cambiado estrictamente a "Partidos finalizados" con sus respectivos innings
                 badge_lbl = f"🏁 Partidos finalizados ({juego['innings_final']} Inn)"
                 marcador_v = f"<span class='score-txt'>{juego['vis_score']}</span>"
                 marcador_l = f"<span class='score-txt'>{juego['loc_score']}</span>"
@@ -646,5 +713,5 @@ elif st.session_state.vista_actual == "pronostico":
     fav_gl = juego["vis_name"] if pred["idx_v"] > pred["idx_l"] else juego["loc_name"]
     st.info(f"""
     **Análisis de Situación Operativa:** Entrando a este compromiso, el modelo cuantitativo posiciona a **{fav_gl}** con ventaja matemática estructural. 
-    Esta conclusión se deriva de los cruces de contacto fuerte e indicators de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El valor esperado (EV+) favorece la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
+    Esta conclusión se deriva de los cruces de contacto fuerte e indicators de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El value esperado (EV+) favors la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
     """)
