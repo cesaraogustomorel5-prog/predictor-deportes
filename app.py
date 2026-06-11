@@ -264,9 +264,8 @@ def cargar_calendario_api(fecha_busqueda_str):
                 dt_et = dt_utc.astimezone(ZONA_HORARIA)
 
                 live_string_descr = "Live Gameday"
-                total_innings_finalizado = "9" # Default fallback standard
+                total_innings_finalizado = "9"
                 
-                # Consumo de endpoint detallado si está corriendo o terminó para conocer entradas exactas
                 if abstract_state in ["Live", "Final"]:
                     linescore_url = f"https://statsapi.mlb.com/api/v1/game/{juego['gamePk']}/linescore"
                     try:
@@ -435,7 +434,7 @@ def draw_bar_premium(label, val_v, val_l, team_v, team_l):
 cartelera_total = cargar_calendario_api(st.session_state.fecha_seleccionada.strftime('%Y-%m-%d'))
 
 # =====================================================================
-# RENDER: VISTA CALENDARIO CENTRAL (SISTEMA DE ORDENAMIENTO EN CURSO -> ARRIBA)
+# RENDER: VISTA CALENDARIO CENTRAL
 # =====================================================================
 if st.session_state.vista_actual == "dashboard":
     st.markdown("### 📅 Calendario")
@@ -448,13 +447,14 @@ if st.session_state.vista_actual == "dashboard":
     j_preview = [g for g in cartelera_total if g["status"] not in ["Live", "Final"]]
     j_final = [g for g in cartelera_total if g["status"] == "Final"]
     
-    # Lista maestra unificada: En curso -> Programados -> Finalizados
+    # Lista unificada ordenada: En curso -> Programados -> Finalizados
     cartelera_ordenada = j_vivo + j_preview + j_final
     
+    # Ajuste preciso de etiquetas según directrices del usuario
     k1, k2, k3 = st.columns(3)
-    with k1: st.metric("Jornada Total", len(cartelera_total))
-    with k2: st.metric("Monitoreo Live (Arriba)", len(j_vivo))
-    with k3: st.metric("Finalizados (Abajo)", len(j_final))
+    with k1: st.metric("Partidos del día", len(cartelera_total))
+    with k2: st.metric("Monitoreo Live", len(j_vivo))
+    with k3: st.metric("Partidos finalizados", len(j_final))
     
     st.markdown("---")
     
@@ -465,12 +465,14 @@ if st.session_state.vista_actual == "dashboard":
             pred_quick = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
             
             if juego["status"] == "Live":
-                badge_lbl = f"🔴 {juego['live_metadata']}"
+                # Cambiado dinámicamente a "Partidos en curso" manteniendo la metadata del Inning
+                live_detail = juego['live_metadata'].replace("Live Gameday -", "").strip()
+                badge_lbl = f"🔴 Partidos en curso — {live_detail}" if "-" in juego['live_metadata'] else "🔴 Partidos en curso"
                 marcador_v = f"<span class='score-txt'>{juego['vis_score']}</span>"
                 marcador_l = f"<span class='score-txt'>{juego['loc_score']}</span>"
             elif juego["status"] == "Final":
-                # Se despliega exactamente en qué entrada (inning) terminaron de forma nativa
-                badge_lbl = f"🏁 FINAL ({juego['innings_final']} Inn)"
+                # Cambiado estrictamente a "Partidos finalizados" con sus respectivos innings
+                badge_lbl = f"🏁 Partidos finalizados ({juego['innings_final']} Inn)"
                 marcador_v = f"<span class='score-txt'>{juego['vis_score']}</span>"
                 marcador_l = f"<span class='score-txt'>{juego['loc_score']}</span>"
             else:
