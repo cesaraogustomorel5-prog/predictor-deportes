@@ -59,7 +59,7 @@ else: # Dark (Gris Oscuro Moderno)
 
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;600;700;800&display=swap');
     
     .stApp {{
         background-color: {css_bg};
@@ -286,7 +286,8 @@ def obtener_datos_equipo(nombre_completo):
     info = MAPEO_ORGANIZACIONES.get(nombre_completo)
     if info:
         return info["nombre"], f"https://www.mlbstatic.com/team-logos/{info['id']}.svg"
-    return nombre_completo, ""
+    # Fallback de seguridad por si las imágenes de la API fallan o el equipo no está mapeado
+    return nombre_completo, "https://www.mlbstatic.com/team-logos/league/1.svg"
 
 @st.cache_data(ttl=30, show_spinner=False)
 def cargar_cartelera_segura_api(fecha_busqueda_str):
@@ -438,7 +439,6 @@ def analizar_matriz_sabermetrica_completa(vis_full, loc_full):
     else:
         estrellas, label_c = "★★☆☆☆", "Baja"
         
-    # --- CORRECCIÓN DE SINTAXIS REALIZADA AQUÍ ---
     linea_corte_ou = 7.5 if total_expected < 8.0 else (8.5 if total_expected < 9.5 else 9.5)
     veredicto_ou = f"OVER {linea_corte_ou}" if total_expected > linea_corte_ou else f"UNDER {linea_corte_ou}"
     
@@ -527,6 +527,7 @@ if st.session_state.vista_actual == "dashboard":
                 marcador_v = ""
                 marcador_l = ""
                 
+            # --- MEJORA ESTRUCTURAL EN CONTROL DE RENDIMIENTO HTML ---
             st.markdown(f"""
                 <div class='premium-card'>
                     <div class='status-container'>
@@ -535,14 +536,14 @@ if st.session_state.vista_actual == "dashboard":
                     </div>
                     <div class='scoreboard-row'>
                         <div class='team-box'>
-                            <img class='team-img' src='{juego['vis_logo']}'>
+                            <img class='team-img' src='{juego['vis_logo']}' onerror='this.style.display="none"'>
                             <span class='team-txt'>{juego['vis_name']}</span>
                         </div>
                         {marcador_v}
                     </div>
                     <div class='scoreboard-row'>
                         <div class='team-box'>
-                            <img class='team-img' src='{juego['loc_logo']}'>
+                            <img class='team-img' src='{juego['loc_logo']}' onerror='this.style.display="none"'>
                             <span class='team-txt'>{juego['loc_name']}</span>
                         </div>
                         {marcador_l}
@@ -603,14 +604,14 @@ elif st.session_state.vista_actual == "resumen":
             </thead>
             <tbody>
                 <tr>
-                    <td style='text-align:left; font-weight:700;'><img src='{juego['vis_logo']}' width='20' style='vertical-align:middle; margin-right:8px;'>{juego['vis_name']}</td>
+                    <td style='text-align:left; font-weight:700;'><img src='{juego['vis_logo']}' width='20' style='vertical-align:middle; margin-right:8px;' onerror='this.style.display="none"'>{juego['vis_name']}</td>
                     {td_vis}
                     <td style='color:#ef4444; font-size:1.1rem; font-weight:800;'>{box_data['vis_rhe'][0]}</td>
                     <td>{box_data['vis_rhe'][1]}</td>
                     <td>{box_data['vis_rhe'][2]}</td>
                 </tr>
                 <tr>
-                    <td style='text-align:left; font-weight:700;'><img src='{juego['loc_logo']}' width='20' style='vertical-align:middle; margin-right:8px;'>{juego['loc_name']}</td>
+                    <td style='text-align:left; font-weight:700;'><img src='{juego['loc_logo']}' width='20' style='vertical-align:middle; margin-right:8px;' onerror='this.style.display="none"'>{juego['loc_name']}</td>
                     {td_loc}
                     <td style='color:#ef4444; font-size:1.1rem; font-weight:800;'>{box_data['loc_rhe'][0]}</td>
                     <td>{box_data['loc_rhe'][1]}</td>
@@ -769,7 +770,7 @@ elif st.session_state.vista_actual == "pronostico":
     st.markdown(f"""
     Nuestra evaluación técnica realiza una correlación avanzada de rendimiento mediante el cruce ponderado de los vectores analíticos estructurales de ambas organizaciones:
     
-    * **Análisis de Capacidad Colectiva:** La ofensiva de **{juego['vis_name']}** muestra un balance sólido fundamentado en su OPS colectivo de **{res['v_stats']['ops']:.3f}**, permitiéndole optimizar sus turnos frente al cuerpo de lanzadores oponente. Como contraparte, la escuadra de **{juego['loc_name']}** sostiene ventajas competitivas debido a sus métricas de Hard Hit y un porcentaje de embasamiento estructurado en parques de estas dimensions.
+    * **Análisis de Capacidad Colectiva:** La ofensiva de **{juego['vis_name']}** muestra un balance sólido fundamentado en su OPS colectivo de **{res['v_stats']['ops']:.3f}**, permitiéndole optimizar sus turnos frente al cuerpo de lanzadores oponente. Como contraparte, la escuadra de **{juego['loc_name']}** sostiene ventajas competitivas debido a sus métricas de Hard Hit y un porcentaje de embasamiento estructurado en parques de estas dimensiones.
     * **Ponderación del Pitcheo:** El análisis pormenorizado del pitcheo abridor y el cuerpo de relevistas intermedios (Bullpen ERA) indica una ventaja en la estabilidad de las entradas tardías para el equipo proyectado como ganador, minimizando las ventanas de anotación rivales en situaciones bajo presión.
     * **Corte Justificado del Total:** La estimación de carreras agregadas se deriva rigurosamente de la interacción entre el promedio de bases por entrada de los bateadores y la efectividad ajustada (xERA/FIP) de los lanzadores titulares, ofreciendo un escenario técnico ideal para fundamentar la selección de **{res['ou']}** de forma empírica y balanceada.
     """)
