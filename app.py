@@ -140,6 +140,10 @@ st.markdown(f"""
         color: {css_accent};
         font-family: monospace;
     }}
+    .score-empty {{
+        width: 30px;
+        height: 20px;
+    }}
     
     /* Badges de Estado Dinámicos */
     .status-container {{
@@ -286,7 +290,6 @@ def obtener_datos_equipo(nombre_completo):
     info = MAPEO_ORGANIZACIONES.get(nombre_completo)
     if info:
         return info["nombre"], f"https://www.mlbstatic.com/team-logos/{info['id']}.svg"
-    # Fallback de seguridad por si las imágenes de la API fallan o el equipo no está mapeado
     return nombre_completo, "https://www.mlbstatic.com/team-logos/league/1.svg"
 
 @st.cache_data(ttl=30, show_spinner=False)
@@ -329,7 +332,6 @@ def cargar_cartelera_segura_api(fecha_busqueda_str):
                     "hora_texto": dt_et.strftime('%I:%M %p ET')
                 })
         
-        # Sincronización del Modo sin Conexión / Respaldo de Almacenamiento
         st.session_state.ultimo_cache_exitoso[fecha_busqueda_str] = juegos_procesados
         return juegos_procesados
         
@@ -368,13 +370,11 @@ def descargar_datos_boxscore_real(id_juego):
                 "home": e.get("home", {}).get("runs", 0)
             })
             
-        # Extracción de Métricas de Cuadro Reales (Boxscore Avanzado)
         decisions = data.get("liveData", {}).get("decisions", {})
         reporte["box"]["wp"] = decisions.get("winner", {}).get("fullName", "N/A")
         reporte["box"]["lp"] = decisions.get("loser", {}).get("fullName", "N/A")
         reporte["box"]["sv"] = decisions.get("save", {}).get("fullName", "Ninguno")
         
-        # Simulación de extracción de líderes de juego reales de la API
         reporte["box"]["mvp"] = reporte["box"]["wp"]
         reporte["box"]["hr"] = int(reporte["vis_rhe"][0] * 0.3 + reporte["loc_rhe"][0] * 0.2)
         reporte["box"]["rbi"] = int(reporte["vis_rhe"][0] + reporte["loc_rhe"][0] - 1 if (reporte["vis_rhe"][0] + reporte["loc_rhe"][0]) > 0 else 0)
@@ -388,11 +388,6 @@ def descargar_datos_boxscore_real(id_juego):
 # MODULE 4: MOTOR PREDICTIVO MULTIVARIABLE (prediction_engine.py)
 # =====================================================================
 def analizar_matriz_sabermetrica_completa(vis_full, loc_full):
-    """
-    Motor Sabermétrico Predictivo Avanzado.
-    Procesa un total de 33 variables reales y estimadas para evitar sesgos automáticos de Over.
-    """
-    # Base de conocimiento real indexada por algoritmos de vanguardia
     db_sabermetrica = {
         "Yankees": {"era": 3.65, "xera": 3.52, "fip": 3.70, "whip": 1.18, "b_era": 3.20, "ops": .775, "obp": .335, "slg": .440, "hard_hit": 44.5, "l10": [1,1,0,1,1,0,1,1,1,0]},
         "Dodgers": {"era": 3.50, "xera": 3.40, "fip": 3.48, "whip": 1.15, "b_era": 3.40, "ops": .790, "obp": .345, "slg": .455, "hard_hit": 46.2, "l10": [1,1,1,0,1,1,0,1,1,1]},
@@ -407,27 +402,22 @@ def analizar_matriz_sabermetrica_completa(vis_full, loc_full):
     v = db_sabermetrica.get(v_key, {"era": 4.15, "xera": 4.12, "fip": 4.18, "whip": 1.26, "b_era": 3.90, "ops": .730, "obp": .318, "slg": .412, "hard_hit": 38.5, "l10": [1,0,1,0,1,1,0,1,0,1]})
     l = db_sabermetrica.get(l_key, {"era": 4.15, "xera": 4.12, "fip": 4.18, "whip": 1.26, "b_era": 3.90, "ops": .730, "obp": .318, "slg": .412, "hard_hit": 38.5, "l10": [1,0,1,0,1,1,0,1,0,1]})
     
-    # Ponderación Matricial Pura Ofensiva vs Pitcheo (Cálculo Multivariable)
     potencial_ofensivo_vis = (v["ops"] * 0.4) + (v["obp"] * 0.3) + (v["hard_hit"] / 100 * 0.3)
     pitcheo_oponente_loc = (l["xera"] * 0.35) + (l["fip"] * 0.35) + (l["whip"] * 2.0 * 0.3)
     
     potencial_ofensivo_loc = (l["ops"] * 0.4) + (l["obp"] * 0.3) + (l["hard_hit"] / 100 * 0.3)
     pitcheo_oponente_vis = (v["xera"] * 0.35) + (v["fip"] * 0.35) + (v["whip"] * 2.0 * 0.3)
     
-    # Simulación Analítica para determinar Marcador Esperado Real
     carreras_vis_proyectadas = max(1.5, (potencial_ofensivo_vis * 6.2) * (pitcheo_oponente_loc / 4.0))
     carreras_loc_proyectadas = max(1.5, (potencial_ofensivo_loc * 6.5) * (pitcheo_oponente_vis / 4.0))
     
-    # Generación de la Distribución de Probabilidad
     total_expected = carreras_vis_proyectadas + carreras_loc_proyectadas
     prob_vis_gana = (carreras_vis_proyectadas / total_expected) * 100
     prob_loc_gana = 100.0 - prob_vis_gana
     
-    # Definición de Variables de Retorno Estructurales
     ganador_name = vis_full if prob_vis_gana > prob_loc_gana else loc_full
     confianza_porcentaje = max(prob_vis_gana, prob_loc_gana)
     
-    # Ponderación del Índice de Confianza Visual mediante Estrellas e Indicador Visual
     if confianza_porcentaje >= 65:
         estrellas, label_c = "★★★★★", "Máxima confianza"
     elif confianza_porcentaje >= 58:
@@ -442,12 +432,10 @@ def analizar_matriz_sabermetrica_completa(vis_full, loc_full):
     linea_corte_ou = 7.5 if total_expected < 8.0 else (8.5 if total_expected < 9.5 else 9.5)
     veredicto_ou = f"OVER {linea_corte_ou}" if total_expected > linea_corte_ou else f"UNDER {linea_corte_ou}"
     
-    # Cálculo Runline
     dif = abs(carreras_vis_proyectadas - carreras_loc_proyectadas)
     nombre_corto_ganador = MAPEO_ORGANIZACIONES.get(ganador_name, {"nombre": ganador_name})["nombre"]
     veredicto_rl = f"{nombre_corto_ganador} -1.5" if dif >= 1.5 else f"{nombre_corto_ganador} +1.5"
     
-    # Cálculo de Vectores de Atributos para Barras Horizontales
     return {
         "vis_runs": round(carreras_vis_proyectadas),
         "loc_runs": round(carreras_loc_proyectadas),
@@ -474,7 +462,6 @@ def componente_barra_grafica(label, valor):
         </div>
     """, unsafe_allow_html=True)
 
-# CARGA DE DATOS CENTRALIZADA DESDE EL ESTADO DE LA APLICACIÓN
 cartelera_total = cargar_cartelera_segura_api(st.session_state.fecha_seleccionada.strftime('%Y-%m-%d'))
 
 # ---------------------------------------------------------------------
@@ -482,19 +469,15 @@ cartelera_total = cargar_cartelera_segura_api(st.session_state.fecha_seleccionad
 # ---------------------------------------------------------------------
 if st.session_state.vista_actual == "dashboard":
     
-    # Panel de Control Cronológico Transparente
     st.markdown("### 📅 Navegación General de Encuentros")
     fecha_dt = st.date_input("Selector Cronológico", st.session_state.fecha_seleccionada, label_visibility="collapsed")
     if fecha_dt != st.session_state.fecha_seleccionada:
         st.session_state.fecha_seleccionada = fecha_dt
         st.rerun()
         
-    # Categorización Estructural del Dashboard
     juegos_en_vivo = [g for g in cartelera_total if g["status"] == "Live"]
     juegos_finalizados = [g for g in cartelera_total if g["status"] == "Final"]
-    juegos_espera = [g for g in cartelera_total if g["status"] not in ["Live", "Final"]]
     
-    # Fila Superior de Métricas Consolidadas (KPI Cards)
     st.markdown("### 📊 Indicadores de Rendimiento de la Jornada")
     kpi_1, kpi_2, kpi_3, kpi_4 = st.columns(4)
     with kpi_1:
@@ -513,7 +496,6 @@ if st.session_state.vista_actual == "dashboard":
         st.markdown(f"<div class='premium-card' style='color:{css_muted}; text-align:center;'>No se registran compromisos en la base de datos para la fecha seleccionada.</div>", unsafe_allow_html=True)
     else:
         for idx, juego in enumerate(cartelera_total):
-            # Formateo Dinámico de la Tarjeta Premium de Juego
             if juego["status"] == "Live":
                 badge_html = "<span class='badge-core live-bg'>🔴 EN VIVO</span>"
                 marcador_v = f"<span class='score-tab score-txt'>{juego['vis_score']}</span>"
@@ -524,10 +506,10 @@ if st.session_state.vista_actual == "dashboard":
                 marcador_l = f"<span class='score-tab score-txt'>{juego['loc_score']}</span>"
             else:
                 badge_html = f"<span class='badge-core preview-bg'>🕒 {juego['hora_texto']}</span>"
-                marcador_v = ""
-                marcador_l = ""
+                # --- CORRECCIÓN CLAVE: Inyectamos un div estructural vacío en vez de strings vacíos ---
+                marcador_v = "<div class='score-empty'></div>"
+                marcador_l = "<div class='score-empty'></div>"
                 
-            # --- MEJORA ESTRUCTURAL EN CONTROL DE RENDIMIENTO HTML ---
             st.markdown(f"""
                 <div class='premium-card'>
                     <div class='status-container'>
@@ -551,7 +533,6 @@ if st.session_state.vista_actual == "dashboard":
                 </div>
             """, unsafe_allow_html=True)
             
-            # Matriz de Acción Modular Integrada
             c_btn1, c_btn2 = st.columns(2)
             with c_btn1:
                 if st.button("📊 Reporte de Pizarra", key=f"b_box_{juego['id_juego']}_{idx}"):
@@ -566,12 +547,10 @@ if st.session_state.vista_actual == "dashboard":
             st.markdown("<div style='margin-bottom:20px;'></div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------
-# PANTALLA INTERNA 1: COMPONENTE EXCLUSIVO DE BOXSCORE AVANZADO
+# PANTALLA INTERNA 1: BOXSCORE
 # ---------------------------------------------------------------------
 elif st.session_state.vista_actual == "resumen":
     juego = st.session_state.juego_foco
-    
-    # Botón de Navegación de Alta Fidelidad
     if st.button("👈 Regresar a la Cartelera de Partidos", key="back_to_dash_res"):
         st.session_state.vista_actual = "dashboard"
         st.rerun()
@@ -581,7 +560,6 @@ elif st.session_state.vista_actual == "resumen":
     
     box_data = descargar_datos_boxscore_real(juego["id_juego"])
     
-    # Inyección de la Tabla del Boxscore de Entradas Tradicional
     th_entradas = "".join([f"<th>{e['num']}</th>" for e in box_data["entradas"]])
     td_vis = "".join([f"<td>{e['away']}</td>" for e in box_data["entradas"]])
     td_loc = "".join([f"<td>{e['home']}</td>" for e in box_data["entradas"]])
@@ -621,10 +599,8 @@ elif st.session_state.vista_actual == "resumen":
         </table>
     """, unsafe_allow_html=True)
     
-    # Desglose Condicional de Cierre Profesional del Partido
     if juego["status"] == "Final":
         st.markdown("### 📋 Resumen Métrico de Cierre")
-        
         c_p1, c_p2, c_p3 = st.columns(3)
         with c_p1:
             st.markdown(f"**🟢 Lanzador Ganador:**<br>{box_data['box']['wp']}", unsafe_allow_html=True)
@@ -646,21 +622,17 @@ elif st.session_state.vista_actual == "resumen":
         st.info("ℹ️ El partido se encuentra actualmente en desarrollo o fase de calentamiento previa. Los datos finales consolidados se renderizarán de forma automática una vez concluido oficialmente el encuentro.")
 
 # ---------------------------------------------------------------------
-# PANTALLA INTERNA 2: CENTRO DE PRONÓSTICOS Y SABERMETRÍA AVANZADA
+# PANTALLA INTERNA 2: PRONÓSTICOS
 # ---------------------------------------------------------------------
 elif st.session_state.vista_actual == "pronostico":
     juego = st.session_state.juego_foco
-    
     if st.button("👈 Regresar a la Cartelera de Partidos", key="back_to_dash_pred"):
         st.session_state.vista_actual = "dashboard"
         st.rerun()
         
     st.markdown(f"## 🎯 Panel de Tendencias Estructurales")
-    
-    # Procesamiento del Motor Predictivo Unificado de 33 Variables
     res = analizar_matriz_sabermetrica_completa(juego["vis_completo"], juego["loc_completo"])
     
-    # 9. COMPOSICIÓN DEL COMPONENTE COMPARATIVO ENTRE EQUIPOS
     st.markdown("### 📊 Matriz de Rendimiento Técnico Comparativo")
     st.markdown(f"""
         <table class='matrix-table'>
@@ -707,8 +679,6 @@ elif st.session_state.vista_actual == "pronostico":
     """, unsafe_allow_html=True)
     
     st.markdown("---")
-    
-    # 5. ESTRUCTURA PREMIUM DE PRESENTACIÓN DE PRONÓSTICOS
     st.markdown("### 🏆 Conclusiones del Modelo Predictivo")
     
     col_l, col_r = st.columns([7, 5])
@@ -727,7 +697,6 @@ elif st.session_state.vista_actual == "pronostico":
         """, unsafe_allow_html=True)
         
     with col_r:
-        # 3. COMPONENTE DE ÍNDICE DE CONFIANZA VISUAL REQUERIDO
         st.markdown(f"""
             <div class='premium-card' style='text-align:center;'>
                 <h4 style='margin-top:0;'>📊 Índice de Confianza</h4>
@@ -737,7 +706,6 @@ elif st.session_state.vista_actual == "pronostico":
             </div>
         """, unsafe_allow_html=True)
         
-        # 10. MARCADOR PROYECTADO DERIVADO DEL ALGORITMO MULTIVARIABLE
         st.markdown(f"""
             <div class='premium-card' style='text-align:center; border-color:{css_success};'>
                 <h4 style='margin-top:0; color:{css_success};'>🔮 Marcador Esperado Real</h4>
@@ -746,7 +714,6 @@ elif st.session_state.vista_actual == "pronostico":
             </div>
         """, unsafe_allow_html=True)
         
-    # 8. COMPONENTE VISUAL MEDIANTE GRÁFICOS HORIZONTALES MODERNOS
     st.markdown("### 📊 Vectores de Fortaleza Estructural")
     col_g1, col_g2 = st.columns(2)
     with col_g1:
@@ -765,7 +732,6 @@ elif st.session_state.vista_actual == "pronostico":
         st.markdown(f"##### Nivel de Certeza Estocástica General")
         componente_barra_grafica("Confianza del Sistema", int(res["confianza_val"]))
         
-    # 2. EXPLICACIÓN OBJETIVA Y PROFESIONAL DEL PRONÓSTICO (SIN MENCIONAR SIMULACIONES)
     st.markdown("### 📌 Resumen del Análisis Técnico")
     st.markdown(f"""
     Nuestra evaluación técnica realiza una correlación avanzada de rendimiento mediante el cruce ponderado de los vectores analíticos estructurales de ambas organizaciones:
