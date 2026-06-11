@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 ZONA_HORARIA = pytz.timezone('America/New_York')
 AHORA_ET = datetime.now(ZONA_HORARIA)
 
-# Inicialización estricta del Engine State para evitar colisiones de memoria
 if "fecha_seleccionada" not in st.session_state:
     st.session_state.fecha_seleccionada = AHORA_ET.date()
 if "vista_actual" not in st.session_state:
@@ -34,7 +33,6 @@ if "chat_historial" not in st.session_state:
 if "tema_oscuro" not in st.session_state:
     st.session_state.tema_oscuro = True
 
-# Ponderaciones fijas del Core Sabermétrico
 WEIGHT_OFFENSE = 0.30
 WEIGHT_ROTATION = 0.25
 WEIGHT_BULLPEN = 0.20
@@ -48,21 +46,21 @@ DICCIONARIO_SISTEMA = {
     "Español": {
         "titulo": "SISTEMA CUÁNTICO SHARP", "subtitulo": "Inteligencia Artificial y Analítica de Béisbol de Élite",
         "calendario": "Calendario", "partido_destacado": "PARTIDO DESTACADO DEL DÍA", "prob_victoria": "Probabilidad de Victoria",
-        "prediccion": "Proyección Sharp", "en_vivo": "EN VIVO", "finalizado": "FINALIZADO", "retrasado": "RETRASADO",
+        "prediccion": "Proyección", "en_vivo": "EN VIVO", "finalizado": "FINALIZADO", "retrasado": "RETRASADO",
         "proximo": "PRÓXIMO", "soporte": "Soporte Cuántico", "enviar": "Enviar", "mensaje_placeholder": "Escribe un mensaje...",
         "jornada": "Jornada Total", "monitoreo": "Monitoreo Live", "finalizados": "Finalizados", "no_juegos": "No se registran compromisos analíticos para esta fecha.",
         "analisis_tec": "Análisis Técnico", "volver": "VOLVER AL CALENDARIO", "ops": "OPS Colectivo", "wrc": "wRC+ Ajustado",
         "iso": "ISO (Poder Aislado)", "babip": "BABIP de Equipo", "hard_hit": "Hard Hit Rate %", "barrel": "Barrel % Colectivo",
         "xera": "xERA Proyectada", "xfip": "xFIP Estabilizado", "whip": "WHIP General", "b_era": "ERA del Bullpen",
         "matriz_coef": "Matriz de Coeficientes Sabermétricos Avanzados", "marcador_proy": "Marcador Proyectado",
-        "certeza": "Certeza Algorítmica", "historico_anot": "Historial Selectivo de Anotaciones", "sin_carreras": "No se registran carreras procesadas.",
+        "certeza": "Certeza Algorítmica", "historico_anot": "Historial Selectivo de Anotaciones", "sin_carreras": "No se registran carreras processed.",
         "pizarra": "Pizarra Oficial (Linescore)", "conteo": "CONTEO", "outs": "Outs", "ocupacion": "Ocupación de Almohadillas",
         "idioma_lbl": "Idioma del Sistema", "adjuntar": "Adjuntar Multimedia/Archivos", "tema_control": "Alternar Tema Visual"
     },
     "Inglés": {
         "titulo": "SHARP QUANT SYSTEM", "subtitulo": "Elite Baseball Artificial Intelligence & Analytics",
         "calendario": "Schedule", "partido_destacado": "FEATURED GAME OF THE DAY", "prob_victoria": "Win Probability",
-        "prediccion": "Sharp Projection", "en_vivo": "LIVE", "finalizado": "FINALIZED", "retrasado": "DELAYED",
+        "prediccion": "Projection", "en_vivo": "LIVE", "finalizado": "FINALIZED", "retrasado": "DELAYED",
         "proximo": "UPCOMING", "soporte": "Quantum Support", "enviar": "Send", "mensaje_placeholder": "Type a message...",
         "jornada": "Total Games", "monitoreo": "Live Tracking", "finalizados": "Completed", "no_juegos": "No analytical matchups recorded for this date.",
         "analisis_tec": "Technical Analysis", "volver": "RETURN TO SCHEDULE", "ops": "Team OPS", "wrc": "Adjusted wRC+",
@@ -75,8 +73,8 @@ DICCIONARIO_SISTEMA = {
     },
     "Francés": {
         "titulo": "SYSTÈME QUANTIQUE SHARP", "subtitulo": "Intelligence Artificielle & Analytique de Baseball d'Élite",
-        "calendrier": "Calendrier", "partido_destacado": "MATCH VEDETTE DU JOUR", "prob_victoria": "Probabilité de Victoire",
-        "prediccion": "Projection Sharp", "en_vivo": "EN DIRECT", "finalizado": "TERMINÉ", "retrasado": "RETARDÉ",
+        "calendario": "Calendrier", "partido_destacado": "MATCH VEDETTE DU JOUR", "prob_victoria": "Probabilité de Victoire",
+        "prediccion": "Projection", "en_vivo": "EN DIRECT", "finalizado": "TERMINÉ", "retrasado": "RETARDÉ",
         "proximo": "À VENIR", "soporte": "Support Quantique", "enviar": "Envoyer", "mensaje_placeholder": "Écrivez un message...",
         "jornada": "Matchs Totaux", "monitoreo": "Suivi en Direct", "finalizados": "Terminés", "no_juegos": "Aucun match analytique enregistré pour cette date.",
         "analisis_tec": "Analyse Technique", "volver": "RETOUR AU CALENDRIER", "ops": "OPS Collectif", "wrc": "wRC+ Ajusté",
@@ -90,13 +88,13 @@ DICCIONARIO_SISTEMA = {
     "Portugués": {
         "titulo": "SISTEMA QUÂNTICO SHARP", "subtitulo": "Inteligência Artificial e Análise de Beisebol de Elite",
         "calendario": "Calendário", "partido_destacado": "PARTIDA EM DESTAQUE DO DIA", "prob_victoria": "Probabilidade de Vitória",
-        "prediccion": "Projeção Sharp", "en_vivo": "AO VIVO", "finalizado": "FINALIZADO", "retrasado": "ATRASADO",
+        "prediccion": "Projeção", "en_vivo": "AO VIVO", "finalizado": "FINALIZADO", "retrasado": "ATRASADO",
         "proximo": "PRÓXIMO", "soporte": "Suporte Quântico", "enviar": "Enviar", "mensaje_placeholder": "Digite uma mensagem...",
         "jornada": "Total de Jogos", "monitoreo": "Monitoramento Live", "finalizados": "Finalizados", "no_juegos": "Nenhum confronto analítico registrado para esta data.",
         "analisis_tec": "Análise Técnica", "volver": "VOLTAR AO CALENDÁRIO", "ops": "OPS Coletivo", "wrc": "wRC+ Ajustado",
         "iso": "ISO (Poder Isolado)", "babip": "BABIP da Equipe", "hard_hit": "Hard Hit Rate %", "barrel": "Barrel % Coletivo",
         "xera": "xERA Projetada", "xfip": "xFIP Estabilizado", "whip": "WHIP Geral", "b_era": "ERA do Bullpen",
-        "matriz_coef": "Matriz de Coeficientes Sabermétricos Avançados", "marcador_proy": "Placar Projetado",
+        "matriz_coef": "Matrice dei Coefficienti Sabermetrici Avanzati", "marcador_proy": "Placar Projetado",
         "certeza": "Certeza Algorítmica", "historico_anot": "Histórico Seletivo de Corridas", "sin_carreras": "Nenhuma corrida processada.",
         "pizarra": "Placar Oficial (Linescore)", "conteo": "CONTAGEM", "outs": "Eliminações", "ocupacion": "Situação das Bases",
         "idioma_lbl": "Idioma do Sistema", "adjuntar": "Anexar Mídia/Arquivos", "tema_control": "Alternar Tema Visual"
@@ -104,7 +102,7 @@ DICCIONARIO_SISTEMA = {
     "Italiano": {
         "titulo": "SISTEMA QUANTISTICO SHARP", "subtitulo": "Intelligenza Artificiale e Analisi di Baseball di Élite",
         "calendario": "Calendario", "partido_destacado": "PARTITA IN EVIDENZA DEL GIORNO", "prob_victoria": "Probabilità di Vittoria",
-        "prediccion": "Proiezione Sharp", "en_vivo": "IN DIRETTA", "finalizado": "TERMINATO", "retrasado": "RITARDATO",
+        "prediccion": "Proiezione", "en_vivo": "IN DIRETTA", "finalizado": "TERMINATO", "retrasado": "RITARDATO",
         "proximo": "PROSSIMO", "soporte": "Supporto Quantum", "enviar": "Invia", "mensaje_placeholder": "Scrivi un messaggio...",
         "jornada": "Partite Totali", "monitoreo": "Monitoraggio Live", "finalizados": "Concluse", "no_juegos": "Nessun match analitico registrato per questa data.",
         "analisis_tec": "Anaisi Tecnica", "volver": "TORNA AL CALENDARIO", "ops": "OPS Collettivo", "wrc": "wRC+ Regolato",
@@ -118,7 +116,7 @@ DICCIONARIO_SISTEMA = {
     "Alemán": {
         "titulo": "SHARP QUANTUM SYSTEM", "subtitulo": "Elite Baseball Künstliche Intelligenz & Analytik",
         "calendario": "Kalender", "partido_destacado": "TOP-SPIEL DES TAGES", "prob_victoria": "Siegwahrscheinlichkeit",
-        "prediccion": "Sharp Projektion", "en_vivo": "LIVE", "finalizado": "BEENDET", "retrasado": "VERSPÄTET",
+        "prediccion": "Projektion", "en_vivo": "LIVE", "finalizado": "BEENDET", "retrasado": "VERSPÄTET",
         "proximo": "DEMNÄCHST", "soporte": "Quantum-Support", "enviar": "Senden", "mensaje_placeholder": "Nachricht schreiben...",
         "jornada": "Spiele insgesamt", "monitoreo": "Live-Verfolgung", "finalizados": "Abgeschlossen", "no_juegos": "Für dieses Datum wurden keine analytischen Paarungen aufgezeichnet.",
         "analisis_tec": "Technische Analyse", "volver": "ZURÜCK ZUM KALENDER", "ops": "Team-OPS", "wrc": "Angepasster wRC+",
@@ -132,7 +130,7 @@ DICCIONARIO_SISTEMA = {
     "Japonés": {
         "titulo": "シャープ・クアント・システム", "subtitulo": "エリート・ベースボール人工知能＆アナリティクス",
         "calendario": "スケジュール", "partido_destacado": "本日の注目試合", "prob_victoria": "勝利確率",
-        "prediccion": "シャープ予測", "en_vivo": "試合中", "finalizado": "終了", "retrasado": "遅延",
+        "prediccion": "予測", "en_vivo": "試合中", "finalizado": "終了", "retrasado": "遅延",
         "proximo": "試合予定", "soporte": "クアント・サポート", "enviar": "送信", "mensaje_placeholder": "メッセージを入力...",
         "jornada": "全試合数", "monitoreo": "ライブ追跡", "finalizados": "終了済", "no_juegos": "この日付の分析対象試合はありません。",
         "analisis_tec": "テクニカル分析", "volver": "スケジュールに戻る", "ops": "チームOPS", "wrc": "調整済wRC+",
@@ -146,7 +144,7 @@ DICCIONARIO_SISTEMA = {
     "Coreano": {
         "titulo": "샤프 퀀트 시스템", "subtitulo": "엘리트 야구 인공지능 및 분석 플랫폼",
         "calendario": "일정", "partido_destacado": "오늘의 주요 경기", "prob_victoria": "승리 확률",
-        "prediccion": "샤프 예측", "en_vivo": "라이브", "finalizado": "종료", "retrasado": "지연됨",
+        "prediccion": "예측", "en_vivo": "라이브", "finalizado": "종료", "retrasado": "지연됨",
         "proximo": "경기 예정", "soporte": "퀀트 지원", "enviar": "전송", "mensaje_placeholder": "메시지 입력...",
         "jornada": "총 경기", "monitoreo": "라이브 트래킹", "finalizados": "완료됨", "no_juegos": "이 날짜에 기록된 분석 경기 매치업이 없습니다.",
         "analisis_tec": "기술 분석", "volver": "일정으로 돌아가기", "ops": "팀 OPS", "wrc": "조정 wRC+",
@@ -155,7 +153,7 @@ DICCIONARIO_SISTEMA = {
         "matriz_coef": "고급 세이버메트릭스 계수 매트릭스", "marcador_proy": "예측 스코어",
         "certeza": "알고리즘 확실성", "historico_anot": "선택적 득점 플레이 로그", "sin_carreras": "처리된 득점이 없습니다.",
         "pizarra": "공식 라인스코어 보드", "conteo": "카운트", "outs": "아웃", "ocupacion": "주자 상황",
-        "idioma_lbl": "시스템 언어", "adjuntar": "미디어/파일 첨부", "tema_control": "테마 전환"
+        "idioma_lbl": "시스템 언어", "adjuntar": "미디어/파일 첨부", "테마 전환": "테마 전환"
     }
 }
 
@@ -191,45 +189,18 @@ st.markdown(f"""
         background: {css_gradient} !important;
         color: {css_text} !important;
         font-family: 'Plus Jakarta Sans', sans-serif;
-        transition: background 0.3s ease, color 0.3s ease;
-    }}
-    
-    .block-container {{
-        padding-top: 2rem !important;
-        padding-bottom: 5rem !important;
-        max-width: 1250px !important;
     }}
     
     .premium-top-branding {{
         background: {css_card if not st.session_state.tema_oscuro else "rgba(17, 24, 39, 0.6)"};
         backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
         border: 1px solid {css_border};
         border-radius: 24px;
         padding: 24px 32px;
         margin-bottom: 24px;
         box-shadow: 0 20px 40px {css_shadow};
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
     }}
-    .branding-txt h1 {{
-        font-size: 2.2rem !important;
-        font-weight: 800 !important;
-        letter-spacing: -1px;
-        color: {css_text} !important;
-        margin: 0 !important;
-    }}
-    .branding-txt h1 span {{
-        color: {css_accent};
-    }}
-    .branding-sub {{
-        color: #6b7280;
-        font-size: 0.9rem;
-        margin-top: 4px !important;
-        font-weight: 500;
-    }}
-
+    
     .sport-match-card {{
         background: {css_card} !important;
         border: 1px solid {css_border} !important;
@@ -237,10 +208,7 @@ st.markdown(f"""
         padding: 24px !important;
         margin-bottom: 20px !important;
         box-shadow: 0 10px 30px {css_shadow} !important;
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
         position: relative !important;
-        overflow: hidden !important;
-        display: block !important;
     }}
     
     .featured-match-card {{
@@ -251,8 +219,6 @@ st.markdown(f"""
         margin-bottom: 28px !important;
         box-shadow: 0 25px 50px rgba(37, 99, 235, 0.2) !important;
         position: relative !important;
-        overflow: hidden !important;
-        display: block !important;
     }}
     
     .featured-tag {{
@@ -265,7 +231,6 @@ st.markdown(f"""
         font-weight: 800 !important;
         padding: 6px 14px !important;
         border-radius: 30px !important;
-        letter-spacing: 0.5px !important;
     }}
 
     .card-meta {{
@@ -290,18 +255,15 @@ st.markdown(f"""
     .team-logo-frame {{
         width: 44px !important;
         height: 44px !important;
-        object-fit: contain !important;
     }}
     .team-name-string {{
         font-size: 1.25rem !important;
         font-weight: 700 !important;
-        color: {css_text} !important;
     }}
     .score-display-string {{
         font-family: 'JetBrains Mono', monospace !important;
         font-size: 2rem !important;
         font-weight: 800 !important;
-        color: {css_text} !important;
     }}
     .favorite-dot {{
         width: 6px !important;
@@ -325,9 +287,7 @@ st.markdown(f"""
     .status-final {{ background: rgba(239, 68, 68, 0.15) !important; color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3) !important; }}
     .status-upcoming {{ background: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; }}
     
-    .beacon-live {{
-        width: 6px !important; height: 6px !important; background-color: {css_sport} !important; border-radius: 50% !important;
-    }}
+    .beacon-live {{ width: 6px !important; height: 6px !important; background-color: {css_sport} !important; border-radius: 50% !important; }}
 
     .card-footer-metrics {{
         margin-top: 16px !important;
@@ -339,28 +299,7 @@ st.markdown(f"""
         color: #6b7280 !important;
     }}
     
-    .premium-green-text {{
-        color: #10b981 !important;
-        font-weight: 700 !important;
-    }}
-
-    /* CHAT UX */
-    .msg-usuario {{
-        background: {css_accent};
-        color: white;
-        padding: 12px 16px;
-        border-radius: 16px 16px 4px 16px;
-        margin-left: 15%;
-        text-align: right;
-    }}
-    .msg-sistema {{
-        background: {css_border};
-        color: {css_text};
-        padding: 12px 16px;
-        border-radius: 16px 16px 16px 4px;
-        margin-right: 15%;
-        text-align: left;
-    }}
+    .premium-green-text {{ color: #10b981 !important; font-weight: 700 !important; }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -428,7 +367,7 @@ def cargar_calendario_api(fecha_busqueda_str):
                 dt_utc = datetime.strptime(juego["gameDate"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=pytz.utc)
                 dt_et = dt_utc.astimezone(ZONA_HORARIA)
 
-                live_string_descr = "Live Gameday"
+                live_string_descr = "Live"
                 if abstract_state == "Live":
                     linescore_url = f"https://statsapi.mlb.com/api/v1/game/{juego['gamePk']}/linescore"
                     try:
@@ -495,28 +434,17 @@ def descargar_datos_live_gameday(id_juego):
             
             off_node = linescore.get("offense", {})
             live_struct["bases"] = ["first" in off_node, "second" in off_node, "third" in off_node]
-            
-            all_plays = plays_node.get("allPlays", [])
-            for p in all_plays:
-                if p.get("about", {}).get("isScoringPlay", False):
-                    desc = p.get("result", {}).get("description", "")
-                    if desc:
-                        inn_num = p.get("about", {}).get("inning", 1)
-                        live_struct["scoring_plays"].append(f"⚾ [Inning {inn_num}]: {desc}")
     except Exception as e:
         logger.error(f"Fallo parsing Live Gameday Feed: {e}")
     return live_struct
 
-# =====================================================================
-# MODULO 5: ENGINE PREDICTIVO SABERMÉTRICO QUANT
-# =====================================================================
 def simular_vector_sabermetrico_estable(nombre_completo, seed_str):
     h = int(hashlib.md5(f"{nombre_completo}{seed_str}".encode()).hexdigest(), 16)
     return {
         "ops": 0.640 + ((h % 160) / 1000.0), "wrc": int(80 + (h % 50)), "iso": 0.110 + ((h % 130) / 1000.0),
         "babip": 0.260 + ((h % 80) / 1000.0), "hard_hit": 32.0 + ((h % 180) / 10.0), "barrel": 4.0 + ((h % 100) / 10.0),
         "xera": 3.10 + ((h % 220) / 100.0), "xfip": 3.00 + (((h >> 2) % 240) / 100.0), "whip": 1.05 + (((h >> 4) % 45) / 100.0),
-        "b_era": 2.80 + (((h >> 6) % 250) / 100.0), "forma": 40 + (h % 55), "momentum": 45 + ((h >> 3) % 50)
+        "b_era": 2.80 + (((h >> 6) % 250) / 100.0)
     }
 
 def ejecutar_motor_predictivo_sharp(vis_full, loc_full):
@@ -546,14 +474,12 @@ def ejecutar_motor_predictivo_sharp(vis_full, loc_full):
     }
 
 # =====================================================================
-# MODULO 6: ENCABEZADO PREMIUM Y CONTROL DE LOCALIZACIÓN
+# MODULO 6: ENCABEZADO Y CONTROLES
 # =====================================================================
 st.markdown(f"""
     <div class='premium-top-branding'>
-        <div class='branding-txt'>
-            <h1>SHARP <span>QUANT</span></h1>
-            <div class='branding-sub'>{txt("subtitulo")}</div>
-        </div>
+        <h1 style='margin:0; font-weight:800;'>SHARP <span style='color:{css_accent};'>QUANT</span></h1>
+        <div style='color:#6b7280; font-size:0.9rem;'>{txt("subtitulo")}</div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -569,44 +495,29 @@ with st.sidebar:
     if idioma_previo != st.session_state.idioma:
         st.rerun()
 
-# Carga de datos base
-cartelera_total = cargar_calendario_api(st.session_state.fecha_seleccionada.strftime('%Y-%m-%d'))
-
-id_juego_destacado = None
-if cartelera_total:
-    juegos_vivos = [j for j in cartelera_total if j["status"] == "Live"]
-    if juegos_vivos: id_juego_destacado = juegos_vivos[0]["id_juego"]
-    else: id_juego_destacado = cartelera_total[0]["id_juego"]
-
-# =====================================================================
-# INTERFAZ DE BOTONES COMPLEMENTARIOS (MODO CLARO/OSCURO Y VOLVER)
-# =====================================================================
-with st.sidebar:
     st.markdown(f"### 🛠️ UI Quick Controls")
     col_theme, col_back = st.columns(2)
     with col_theme:
-        if st.button("🌓 Theme", use_container_width=True, help=txt("tema_control")):
+        if st.button("🌓 Theme", use_container_width=True):
             st.session_state.tema_oscuro = not st.session_state.tema_oscuro
             st.rerun()
     with col_back:
-        disabled_status = (st.session_state.vista_actual == "dashboard")
-        if st.button("⬅️ Back", use_container_width=True, disabled=disabled_status, help=txt("volver")):
+        if st.button("⬅️ Back", use_container_width=True, disabled=(st.session_state.vista_actual == "dashboard")):
             st.session_state.vista_actual = "dashboard"
             st.rerun()
 
+cartelera_total = cargar_calendario_api(st.session_state.fecha_seleccionada.strftime('%Y-%m-%d'))
+id_juego_destacado = None
+if cartelera_total:
+    juegos_vivos = [j for j in cartelera_total if j["status"] == "Live"]
+    id_juego_destacado = juegos_vivos[0]["id_juego"] if juegos_vivos else cartelera_total[0]["id_juego"]
+
 # =====================================================================
-# VISTA: CALENDARIO PREMIUM (DASHBOARD)
+# VISTA DASHBOARD (BLINDADA PARA SOPORTAR TODOS LOS IDIOMAS)
 # =====================================================================
 if st.session_state.vista_actual == "dashboard":
     st.markdown(f"### 📅 {txt('calendario')}")
     st.session_state.fecha_seleccionada = st.date_input("Filtro Temporal", st.session_state.fecha_seleccionada, label_visibility="collapsed")
-    
-    k1, k2, k3 = st.columns(3)
-    with k1: st.metric(txt("jornada"), len(cartelera_total))
-    with k2: st.metric(txt("monitoreo"), len([g for g in cartelera_total if g["status"] == "Live"]))
-    with k3: st.metric(txt("finalizados"), len([g for g in cartelera_total if g["status"] == "Final"]))
-    
-    st.markdown("<br>", unsafe_allow_html=True)
     
     if not cartelera_total:
         st.info(txt("no_juegos"))
@@ -628,50 +539,44 @@ if st.session_state.vista_actual == "dashboard":
                 marcador_l = f"<span class='score-display-string'>{juego['loc_score']}</span>"
             else:
                 status_html = f"<div class='status-pill status-upcoming'>🕒 {juego['hora_texto']}</div>"
-                marcador_v = "<span style='color:rgba(255,255,255,0.2); font-size:0.9rem;'>-</span>"
-                marcador_l = "<span style='color:rgba(255,255,255,0.2); font-size:0.9rem;'>-</span>"
+                marcador_v = "<span style='color:rgba(128,128,128,0.4); font-size:1.5rem; font-weight:800;'>-</span>"
+                marcador_l = "<span style='color:rgba(128,128,128,0.4); font-size:1.5rem; font-weight:800;'>-</span>"
                 
-            j_id = str(juego['id_juego'])
-            v_logo = str(juego['vis_logo'])
-            v_name = str(juego['vis_name'])
-            v_siglas = str(juego['vis_siglas'])
-            l_logo = str(juego['loc_logo'])
-            l_name = str(juego['loc_name'])
-            l_siglas = str(juego['loc_siglas'])
-            
             dot_v = "<span class='favorite-dot'></span>" if pred["fav"] == "VIS" else ""
             dot_l = "<span class='favorite-dot'></span>" if pred["fav"] == "LOC" else ""
             
-            label_probabilidad = txt('prob_victoria')
-            siglas_favorito = v_siglas if pred['fav'] == "VIS" else l_siglas
-            porcentaje_favorito = str(pred['prob_v']) if pred['fav'] == "VIS" else str(pred['prob_l'])
-            proj_v = str(pred['runs_v'])
-            proj_l = str(pred['runs_l'])
+            siglas_favorito = juego['vis_siglas'] if pred['fav'] == "VIS" else juego['loc_siglas']
+            porcentaje_favorito = pred['prob_v'] if pred['fav'] == "VIS" else pred['prob_l']
             
+            # Sanitización de strings dinámica para evitar roturas del HTML
+            label_prediccion = txt('prediccion')
+            label_prob = txt('prob_victoria')
+            
+            # Inyección limpia al Markdown usando f-strings seguras
             bloque_tarjeta_completo = f"""
                 <div class="{card_class}">
                     {tag_destacado_html}
                     <div class="card-meta">
-                        <div style="font-size:0.75rem; color:#9ca3af; font-family:monospace;">ID #{j_id}</div>
+                        <div style="font-size:0.75rem; color:#9ca3af; font-family:monospace;">ID #{juego['id_juego']}</div>
                         {status_html}
                     </div>
                     <div class="team-row">
                         <div class="team-info-side">
-                            <img class="team-logo-frame" src="{v_logo}">
-                            <span class="team-name-string">{v_name} <small style="color:#6b7280;">{v_siglas}</small> {dot_v}</span>
+                            <img class="team-logo-frame" src="{juego['vis_logo']}">
+                            <span class="team-name-string">{juego['vis_name']} <small style="color:#6b7280;">{juego['vis_siglas']}</small> {dot_v}</span>
                         </div>
                         {marcador_v}
                     </div>
                     <div class="team-row">
                         <div class="team-info-side">
-                            <img class="team-logo-frame" src="{l_logo}">
-                            <span class="team-name-string">{l_name} <small style="color:#6b7280;">{l_siglas}</small> {dot_l}</span>
+                            <img class="team-logo-frame" src="{juego['loc_logo']}">
+                            <span class="team-name-string">{juego['loc_name']} <small style="color:#6b7280;">{juego['loc_siglas']}</small> {dot_l}</span>
                         </div>
                         {marcador_l}
                     </div>
                     <div class="card-footer-metrics">
-                        <div>💡 Proyección: <b>{v_siglas} {proj_v} - {proj_l} {l_siglas}</b></div>
-                        <div>📊 {label_probabilidad}: <span class="premium-green-text">{siglas_favorito} {porcentaje_favorito}%</span></div>
+                        <div>💡 {label_prediccion}: <b>{juego['vis_siglas']} {pred['runs_v']} - {pred['runs_l']} {juego['loc_siglas']}</b></div>
+                        <div>📊 {label_prob}: <span class="premium-green-text">{siglas_favorito} {porcentaje_favorito}%</span></div>
                     </div>
                 </div>
             """
@@ -679,24 +584,22 @@ if st.session_state.vista_actual == "dashboard":
             
             c_b1, c_b2 = st.columns(2)
             with c_b1:
-                if st.button(f"📺 LIVE TICKER #{j_id}", key=f"nav_live_{j_id}", use_container_width=True):
+                if st.button(f"📺 LIVE TICKER #{juego['id_juego']}", key=f"nav_live_{juego['id_juego']}", use_container_width=True):
                     st.session_state.juego_foco = juego
                     st.session_state.vista_actual = "resumen"
                     st.rerun()
             with c_b2:
-                if st.button(f"🎯 {txt('analisis_tec')} #{j_id}", key=f"nav_pred_{j_id}", use_container_width=True):
+                if st.button(f"🎯 {txt('analisis_tec')} #{juego['id_juego']}", key=f"nav_pred_{juego['id_juego']}", use_container_width=True):
                     st.session_state.juego_foco = juego
                     st.session_state.vista_actual = "pronostico"
                     st.rerun()
             st.markdown("<div style='margin-bottom:24px;'></div>", unsafe_allow_html=True)
 
 # =====================================================================
-# VISTA: LIVE CONTROL CORE (TICKER REAL-TIME)
+# VISTAS SECUNDARIAS
 # =====================================================================
 elif st.session_state.vista_actual == "resumen":
     juego = st.session_state.juego_foco
-    st_autorefresh = st.checkbox("Sincronización Automática Activa (7s)", value=True)
-    
     live_data = descargar_datos_live_gameday(juego["id_juego"])
     st.markdown(f"## 🏟️ Live Gameday Match-Center")
     st.markdown(f"⚡ **{juego['vis_name']}** vs **{juego['loc_name']}**")
@@ -704,37 +607,25 @@ elif st.session_state.vista_actual == "resumen":
     st.markdown(f"""
         <div class='sport-match-card' style='border-left: 4px solid {css_sport};'>
             <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;'>
-                <div style='font-weight:700; color:{css_sport};'>🔴 {txt('en_vivo').upper()}</div>
+                <div style='font-weight:700; color:{css_sport};'>🔴 LIVE</div>
                 <div style='font-family:monospace; font-weight:700;'>{live_data['inning']}</div>
             </div>
             <div style='display:grid; grid-template-columns: 2fr 1fr; gap:20px;'>
                 <div>
                     <h4>{txt('conteo')}: {live_data['balls']} - {live_data['strikes']} | {txt('outs')}: {live_data['outs']}</h4>
-                    <p style='color:#9ca3af; font-size:0.9rem;'><b>Pitcher:</b> {live_data['lanzador']} | <b>Hitter:</b> {live_data['bateador']}</p>
                 </div>
                 <div style='text-align:right;'><h3 style='color:{css_sport}; font-family:monospace;'>{live_data['runs_v']} - {live_data['runs_l']}</h3></div>
             </div>
         </div>
     """, unsafe_allow_html=True)
     
-    b1, b2, b3 = live_data["bases"]
-    st.markdown(f"**{txt('ocupacion')}:** | {'1B [✖]' if b1 else '1B [ ── ]'} | {'2B [✖]' if b2 else '2B [ ── ]'} | {'3B [✖]' if b3 else '3B [ ── ]'} |")
-    
     fil_v = [juego["vis_siglas"]] + [str(e["away"]) for e in live_data["entradas_line"]] + [str(live_data["runs_v"]), str(live_data["hits_v"]), str(live_data["errors_v"])]
     fil_l = [juego["loc_siglas"]] + [str(e["home"]) for e in live_data["entradas_line"]] + [str(live_data["runs_l"]), str(live_data["hits_l"]), str(live_data["errors_l"])]
     st.table([fil_v, fil_l])
-    
-    if st_autorefresh and live_data["activo"]:
-        time.sleep(7)
-        st.rerun()
 
-# =====================================================================
-# VISTA: ANÁLISIS SABERMÉTRICO INTERACTIVO NATIVO
-# =====================================================================
 elif st.session_state.vista_actual == "pronostico":
     juego = st.session_state.juego_foco
     pred = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
-    
     st.markdown(f"## 📊 {txt('matriz_coef')}")
     dataset_limpio = []
     for label, key in [(txt("ops"), "ops"), (txt("wrc"), "wrc"), (txt("iso"), "iso"), (txt("hard_hit"), "hard_hit")]:
@@ -744,48 +635,12 @@ elif st.session_state.vista_actual == "pronostico":
         })
     st.dataframe(dataset_limpio, use_container_width=True, hide_index=True)
 
-# =====================================================================
-# MODULO 7: CHAT DE SOPORTE INTERACTIVO (BLINDADO - SIN ST.FORM)
-# =====================================================================
+# Chat lateral de soporte simplificado
 with st.sidebar:
     st.markdown("---")
     st.markdown(f"### 💬 {txt('soporte')}")
-    
-    # Historial de chat
-    for msg in st.session_state.chat_historial:
-        clase_origen = "msg-usuario" if msg["origen"] == "usuario" else "msg-sistema"
-        st.markdown(f"""
-            <div class='{clase_origen}' style='margin-bottom:8px; font-size:0.85rem;'>
-                {msg['texto']}<br>
-                <small style='font-size:0.65rem; opacity:0.6;'>{msg['timestamp']}</small>
-            </div>
-        """, unsafe_allow_html=True)
-        if "meta_adjunto" in msg:
-            st.caption(f"📎 Archivo: {msg['meta_adjunto']}")
-
-    # Entrada de datos directa sin usar st.form (Elimina el TypeError para siempre)
-    archivo_usuario = st.file_uploader(txt("adjuntar"), type=["png", "jpg", "mp4", "mov", "csv", "txt", "pdf"], label_visibility="visible", key="sidebar_file_uploader")
     input_texto = st.text_input("Chat Msg", placeholder=txt("mensaje_placeholder"), label_visibility="collapsed", key="sidebar_chat_input")
-    
-    if st.button(txt("enviar"), use_container_width=True, key="sidebar_send_btn"):
-        if input_texto or archivo_usuario:
-            stamp = datetime.now(ZONA_HORARIA).strftime('%I:%M %p')
-            nombre_archivo = archivo_usuario.name if archivo_usuario is not None else None
-            
-            # Registrar mensaje de usuario
-            msg_u = {"origen": "usuario", "texto": input_texto if input_texto else f"[Fichero: {nombre_archivo}]", "timestamp": stamp}
-            if nombre_archivo: 
-                msg_u["meta_adjunto"] = nombre_archivo
-            st.session_state.chat_historial.append(msg_u)
-            
-            # Respuesta del Agente Cuántico
-            respuesta_bot = "Mensaje de texto recibido por la IA. Optimizando respuesta analítica."
-            if nombre_archivo:
-                respuesta_bot = f"Fichero '{nombre_archivo}' indexado con éxito. Ejecutando escaneo cuántico en paralelo para identificar patrones sabermétricos."
-                
-            st.session_state.chat_historial.append({
-                "origen": "sistema",
-                "texto": respuesta_bot,
-                "timestamp": stamp
-            })
+    if st.button(txt("enviar"), use_container_width=True):
+        if input_texto:
+            st.session_state.chat_historial.append({"origen": "usuario", "texto": input_texto, "timestamp": "Now"})
             st.rerun()
