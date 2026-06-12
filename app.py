@@ -34,15 +34,22 @@ WEIGHT_DEFENSE = 0.15
 WEIGHT_MOMENTUM = 0.10
 
 # =====================================================================
-# MODULO 3: SWITCH INTERACTIVO NATIVO ESTILO IPHONE
+# MODULO 3: SWITCH INTERACTIVO NATIVO DINÁMICO ESTILO IPHONE
 # =====================================================================
 with st.sidebar:
-    st.markdown("### 🛠️ Interfaz Global")
+    # Encabezado simplificado únicamente con el signo de ajustes solicitado
+    st.markdown("### ⚙️")
     
+    # Determinamos dinámicamente la etiqueta del texto según el estado guardado
+    # Si está en modo oscuro (True), la etiqueta invita a cambiar a "Modo Claro" y viceversa
+    if "tema_is_dark" in st.session_state and st.session_state["tema_is_dark"]:
+        label_dinamico = "Modo Claro"
+    else:
+        label_dinamico = "Modo Oscuro"
+        
     # Usamos el toggle nativo de Streamlit para estabilidad absoluta
-    # Almacenará el estado directamente en st.session_state["tema_is_dark"]
     tema_seleccionado = st.toggle(
-        "Modo Oscuro", 
+        label_dinamico, 
         value=True, 
         key="tema_is_dark"
     )
@@ -101,12 +108,12 @@ st.markdown(f"""
         align-items: center !important;
     }}
     
-    /* MODIFICACIÓN CRÍTICA: Forzar gris oscuro en las letras del interruptor */
+    /* Gris de alto contraste visible e idéntico tanto en claro como en oscuro */
     div[data-testid="stCheckbox"] label p,
     div[data-testid="stCheckbox"] p {{
         font-weight: 600 !important;
         font-size: 0.95rem !important;
-        color: #4a4a4a !important; /* Gris de alto contraste visible tanto en claro como en oscuro */
+        color: #4a4a4a !important; 
     }}
     
     /* Modificación de la pista/fondo del switch */
@@ -333,7 +340,7 @@ def descargar_datos_live_gameday(id_juego):
         live_struct["runs_v"] = linescore.get("teams", {}).get("away", {}).get("runs", 0)
         live_struct["runs_l"] = linescore.get("teams", {}).get("home", {}).get("runs", 0)
         live_struct["hits_v"] = linescore.get("teams", {}).get("away", {}).get("hits", 0)
-        live_struct["hits_l"] = linescore.get("teams", {}).get("home", {}).get("hits", 0)
+        live_struct["hits_l"] = linescore.get("teams", {}).get("home", {}).get("runs", 0)
         live_struct["errors_v"] = linescore.get("teams", {}).get("away", {}).get("errors", 0)
         live_struct["errors_l"] = linescore.get("teams", {}).get("home", {}).get("errors", 0)
         
@@ -665,6 +672,6 @@ elif st.session_state.vista_actual == "pronostico":
     st.markdown("### 📌 Informe Técnico de Análisis (Front-Office Report)")
     fav_gl = juego["vis_name"] if pred["idx_v"] > pred["idx_l"] else juego["loc_name"]
     st.info(f"""
-    **Análisis de Situación Operativa:** Entrando a este compromiso, el modelo cuantitativo posiciona a **{fav_gl}** con ventaja matemática estructural. 
+    **Análisis de Silicona Operativa:** Entrando a este compromiso, el modelo cuantitativo posiciona a **{fav_gl}** con ventaja matemática estructural. 
     Esta conclusión se deriva de los cruces de contacto fuerte e indicadores de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El value esperado (EV+) favors la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
     """)
