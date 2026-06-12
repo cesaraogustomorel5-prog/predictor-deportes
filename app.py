@@ -63,7 +63,7 @@ if st.session_state.tema_is_dark:
     css_accent = "#38bdf8"
     css_success = "#10b981"
     css_danger = "#ef4444"
-    css_warning = "#f59e0b" # Color ámbar para retrasos en modo oscuro
+    css_warning = "#f59e0b" 
     css_shadow = "rgba(56, 189, 248, 0.04)"
 else:
     css_bg = "#f2f2f7"             
@@ -73,7 +73,7 @@ else:
     css_accent = "#2563eb"
     css_success = "#16a34a"
     css_danger = "#dc2626"
-    css_warning = "#d97706" # Color ámbar oscuro para retrasos en modo claro
+    css_warning = "#d97706" 
     css_shadow = "rgba(15, 23, 42, 0.05)"
 
 st.markdown(f"""
@@ -279,7 +279,6 @@ def cargar_calendario_api(fecha_busqueda_str):
                 live_string_descr = "Live Gameday"
                 total_innings_finalizado = "9"
                 
-                # DETECCIÓN DE ESTADOS EXCEPCIONALES (Retrasado / Suspendido)
                 if "Delayed" in detailed_state or "Warmup" in detailed_state:
                     abstract_state = "Delayed"
                 elif "Postponed" in detailed_state or "Suspended" in detailed_state or "Cancelled" in detailed_state:
@@ -470,14 +469,18 @@ if st.session_state.vista_actual == "dashboard":
     j_preview = [g for g in cartelera_total if g["status"] not in ["Live", "Final", "Delayed", "Suspended"]]
     j_final = [g for g in cartelera_total if g["status"] == "Final"]
     
-    # Lista unificada ordenada con soporte para los nuevos estados excepcionales
+    # Cálculo de los partidos faltantes (Preprogramados + Retrasados que aún no se juegan)
+    partidos_faltantes_total = len(j_preview) + len(j_delayed)
+    
+    # Lista unificada ordenada
     cartelera_ordenada = j_vivo + j_delayed + st_suspended + j_preview + j_final
     
-    # Barra métrica superior
-    k1, k2, k3 = st.columns(3)
+    # NUEVA ESTRUCTURA DE 4 COLUMNAS PARA INTEGRAR 'PARTIDOS FALTANTES'
+    k1, k2, k3, k4 = st.columns(4)
     with k1: st.metric("Partidos del día", len(cartelera_total))
     with k2: st.metric("Partidos en curso", len(j_vivo))
     with k3: st.metric("Partidos finalizados", len(j_final))
+    with k4: st.metric("Partidos faltantes", partidos_faltantes_total)
     
     st.markdown("---")
     
@@ -487,7 +490,6 @@ if st.session_state.vista_actual == "dashboard":
         for juego in cartelera_ordenada:
             pred_quick = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
             
-            # GESTIÓN VISUAL DE ESTADOS EN EL DASHBOARD
             if juego["status"] == "Live":
                 live_detail = juego['live_metadata'].replace("Live Gameday -", "").strip()
                 badge_lbl = f"🔴 Partidos en curso — {live_detail}" if "-" in juego['live_metadata'] else "🔴 Partidos en curso"
@@ -540,7 +542,6 @@ if st.session_state.vista_actual == "dashboard":
             
             c_b1, c_b2 = st.columns(2)
             with c_b1:
-                # El acceso al gameday se deshabilita elegantemente en partidos suspendidos ya que no hay datos en vivo activos
                 if juego["status"] == "Suspended":
                     st.button(f"🚫 Suspendido #{juego['id_juego']}", key=f"tg_live_{juego['id_juego']}", disabled=True)
                 else:
@@ -572,7 +573,6 @@ elif st.session_state.vista_actual == "resumen":
     flecha_half = "▲ Alta" if live_data["is_top"] else "▼ Baja"
     estado_marcador_live = f"{juego['vis_siglas']} {live_data['runs_v']} - {live_data['runs_l']} {juego['loc_siglas']}"
     
-    # Manejo dinámico de alertas dentro de la vista expandida del Ticker
     if juego["status"] == "Delayed":
         texto_alerta_ticker = f"⚠️ ALERTA: PARTIDO RETRASADO ({juego['detalle']})"
         color_borde_ticker = css_warning
