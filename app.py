@@ -469,18 +469,20 @@ if st.session_state.vista_actual == "dashboard":
     j_preview = [g for g in cartelera_total if g["status"] not in ["Live", "Final", "Delayed", "Suspended"]]
     j_final = [g for g in cartelera_total if g["status"] == "Final"]
     
-    # Cálculo de los partidos faltantes (Preprogramados + Retrasados que aún no se juegan)
+    # Cálculos independientes de estados
     partidos_faltantes_total = len(j_preview) + len(j_delayed)
+    partidos_suspendidos_total = len(st_suspended)
     
     # Lista unificada ordenada
     cartelera_ordenada = j_vivo + j_delayed + st_suspended + j_preview + j_final
     
-    # NUEVA ESTRUCTURA DE 4 COLUMNAS PARA INTEGRAR 'PARTIDOS FALTANTES'
-    k1, k2, k3, k4 = st.columns(4)
+    # NUEVA ESTRUCTURA DE 5 COLUMNAS PARA INTEGRAR TODAS LAS MÉTRICAS
+    k1, k2, k3, k4, k5 = st.columns(5)
     with k1: st.metric("Partidos del día", len(cartelera_total))
     with k2: st.metric("Partidos en curso", len(j_vivo))
     with k3: st.metric("Partidos finalizados", len(j_final))
     with k4: st.metric("Partidos faltantes", partidos_faltantes_total)
+    with k5: st.metric("Partidos suspendidos", partidos_suspendidos_total)
     
     st.markdown("---")
     
