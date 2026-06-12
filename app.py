@@ -78,7 +78,7 @@ else:
 
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&family=JetBrains+Mono:wght=400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
     
     .stApp {{
         background-color: {css_bg} !important;
@@ -192,31 +192,29 @@ st.markdown(f"""
     .text-success-custom {{ color: {css_success} !important; font-weight: bold; }}
     .text-danger-custom {{ color: {css_danger} !important; font-weight: bold; }}
 
-    /* ESTILOS INTERFAZ MINI-METRICAS COMPACTAS */
+    /* ESTILOS INTERFAZ MINI-METRICAS COMPACTAS AJUSTADO */
     .mini-metric-container {{
         background: {css_card};
         border: 1px solid {css_border};
-        border-radius: 10px;
-        padding: 8px 6px;
+        border-radius: 8px;
+        padding: 4px 6px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
-        box-shadow: 0 2px 8px {css_shadow};
-        min-height: 68px;
+        box-shadow: 0 2px 4px {css_shadow};
+        min-height: 50px;
     }}
     .mini-metric-label {{
-        font-size: 0.72rem !important;
+        font-size: 0.65rem !important;
         font-weight: 600;
         color: {css_muted} !important;
-        margin-bottom: 4px;
         text-transform: uppercase;
-        letter-spacing: 0.2px;
-        line-height: 1.1;
+        margin-bottom: 1px;
     }}
     .mini-metric-value {{
-        font-size: 1.25rem !important;
+        font-size: 1rem !important;
         font-weight: 800;
         color: {css_text_fixed} !important;
         font-family: 'JetBrains Mono', monospace;
@@ -506,43 +504,25 @@ if st.session_state.vista_actual == "dashboard":
     # Lista unificada ordenada
     cartelera_ordenada = j_vivo + j_delayed + st_suspended + j_preview + j_final
     
-    # RENDERIZADO COMPACTO CON NOMBRES SOLICITADOS EN UNA SOLA LÍNEA
-    k1, k2, k3, k4, k5 = st.columns(5)
-    with k1:
-        st.markdown(f"""
-            <div class='mini-metric-container'>
-                <div class='mini-metric-label'>📅 Partidos del día</div>
-                <div class='mini-metric-value'>{len(cartelera_total)}</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with k2:
-        st.markdown(f"""
-            <div class='mini-metric-container'>
-                <div class='mini-metric-label'>🔴 Partidos en curso</div>
-                <div class='mini-metric-value'>{len(j_vivo)}</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with k3:
-        st.markdown(f"""
-            <div class='mini-metric-container'>
-                <div class='mini-metric-label'>🏁 Partidos finalizados</div>
-                <div class='mini-metric-value'>{len(j_final)}</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with k4:
-        st.markdown(f"""
-            <div class='mini-metric-container'>
-                <div class='mini-metric-label'>⏳ Partidos faltantes</div>
-                <div class='mini-metric-value'>{partidos_faltantes_total}</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with k5:
-        st.markdown(f"""
-            <div class='mini-metric-container'>
-                <div class='mini-metric-label'>❌ Partidos suspendidos</div>
-                <div class='mini-metric-value'>{partidos_suspendidos_total}</div>
-            </div>
-        """, unsafe_allow_html=True)
+    # RENDERIZADO COMPACTO - GRID 3x2
+    cols = st.columns(3)
+    data_metrics = [
+        ("📅 Total", len(cartelera_total)),
+        ("🔴 En curso", len(j_vivo)),
+        ("🏁 Final", len(j_final)),
+        ("⏳ Faltantes", partidos_faltantes_total),
+        ("❌ Suspend.", partidos_suspendidos_total)
+    ]
+    
+    for i, (label, val) in enumerate(data_metrics):
+        with cols[i % 3]:
+            st.markdown(f"""
+                <div class='mini-metric-container'>
+                    <div class='mini-metric-label'>{label}</div>
+                    <div class='mini-metric-value'>{val}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            st.write("") # Spacer pequeño
     
     st.markdown("---")
     
