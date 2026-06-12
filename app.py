@@ -191,6 +191,34 @@ st.markdown(f"""
     
     .text-success-custom {{ color: {css_success} !important; font-weight: bold; }}
     .text-danger-custom {{ color: {css_danger} !important; font-weight: bold; }}
+
+    /* ESTILOS INTERFAZ MINI-METRICAS COMPACTAS */
+    .mini-metric-container {{
+        background: {css_card};
+        border: 1px solid {css_border};
+        border-radius: 10px;
+        padding: 8px 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 2px 8px {css_shadow};
+    }}
+    .mini-metric-label {{
+        font-size: 0.78rem !important;
+        font-weight: 600;
+        color: {css_muted} !important;
+        margin-bottom: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }}
+    .mini-metric-value {{
+        font-size: 1.25rem !important;
+        font-weight: 800;
+        color: {css_text_fixed} !important;
+        font-family: 'JetBrains Mono', monospace;
+    }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -476,13 +504,43 @@ if st.session_state.vista_actual == "dashboard":
     # Lista unificada ordenada
     cartelera_ordenada = j_vivo + j_delayed + st_suspended + j_preview + j_final
     
-    # NUEVA ESTRUCTURA DE 5 COLUMNAS PARA INTEGRAR TODAS LAS MÉTRICAS
+    # RENDERIZADO COMPACTO EN HTML (SIN ESPACIOS VACÍOS VERTICALES)
     k1, k2, k3, k4, k5 = st.columns(5)
-    with k1: st.metric("Partidos del día", len(cartelera_total))
-    with k2: st.metric("Partidos en curso", len(j_vivo))
-    with k3: st.metric("Partidos finalizados", len(j_final))
-    with k4: st.metric("Partidos faltantes", partidos_faltantes_total)
-    with k5: st.metric("Partidos suspendidos", partidos_suspendidos_total)
+    with k1:
+        st.markdown(f"""
+            <div class='mini-metric-container'>
+                <div class='mini-metric-label'>📅 Del Día</div>
+                <div class='mini-metric-value'>{len(cartelera_total)}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with k2:
+        st.markdown(f"""
+            <div class='mini-metric-container'>
+                <div class='mini-metric-label'>🔴 En Curso</div>
+                <div class='mini-metric-value'>{len(j_vivo)}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with k3:
+        st.markdown(f"""
+            <div class='mini-metric-container'>
+                <div class='mini-metric-label'>🏁 Finalizados</div>
+                <div class='mini-metric-value'>{len(j_final)}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with k4:
+        st.markdown(f"""
+            <div class='mini-metric-container'>
+                <div class='mini-metric-label'>⏳ Faltantes</div>
+                <div class='mini-metric-value'>{partidos_faltantes_total}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with k5:
+        st.markdown(f"""
+            <div class='mini-metric-container'>
+                <div class='mini-metric-label'>❌ Suspendidos</div>
+                <div class='mini-metric-value'>{partidos_suspendidos_total}</div>
+            </div>
+        """, unsafe_allow_html=True)
     
     st.markdown("---")
     
