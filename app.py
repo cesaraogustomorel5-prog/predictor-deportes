@@ -37,17 +37,13 @@ WEIGHT_MOMENTUM = 0.10
 # MODULO 3: SWITCH INTERACTIVO NATIVO DINÁMICO ESTILO IPHONE
 # =====================================================================
 with st.sidebar:
-    # Encabezado simplificado únicamente con el signo de ajustes solicitado
     st.markdown("### ⚙️")
     
-    # Determinamos dinámicamente la etiqueta del texto según el estado guardado
-    # Si está en modo oscuro (True), la etiqueta invita a cambiar a "Modo Claro" y viceversa
     if "tema_is_dark" in st.session_state and st.session_state["tema_is_dark"]:
         label_dinamico = "Modo Claro"
     else:
         label_dinamico = "Modo Oscuro"
         
-    # Usamos el toggle nativo de Streamlit para estabilidad absoluta
     tema_seleccionado = st.toggle(
         label_dinamico, 
         value=True, 
@@ -57,26 +53,27 @@ with st.sidebar:
 # =====================================================================
 # MODULO 2: SISTEMA DE DISEÑO ADAPTATIVO TOTAL (MODO CLARO / OSCURO)
 # =====================================================================
-# Color de texto FIJO y universal de alto contraste para ambos temas
 css_text_fixed = "#8e8e93"
 
 if st.session_state.tema_is_dark:
-    css_bg = "#000000"             # Negro puro estilo iOS
-    css_card = "#1c1c1e"           # Gris oscuro estilo iOS
+    css_bg = "#000000"             
+    css_card = "#1c1c1e"           
     css_border = "#2c2c2e"
     css_muted = "#64748b"
     css_accent = "#38bdf8"
     css_success = "#10b981"
     css_danger = "#ef4444"
+    css_warning = "#f59e0b" # Color ámbar para retrasos en modo oscuro
     css_shadow = "rgba(56, 189, 248, 0.04)"
 else:
-    css_bg = "#f2f2f7"             # Gris claro estilo iOS
-    css_card = "#ffffff"           # Blanco puro estilo iOS
+    css_bg = "#f2f2f7"             
+    css_card = "#ffffff"           
     css_border = "#e5e5ea"
     css_muted = "#64748b"
     css_accent = "#2563eb"
     css_success = "#16a34a"
     css_danger = "#dc2626"
+    css_warning = "#d97706" # Color ámbar oscuro para retrasos en modo claro
     css_shadow = "rgba(15, 23, 42, 0.05)"
 
 st.markdown(f"""
@@ -89,14 +86,12 @@ st.markdown(f"""
         font-family: 'Inter', sans-serif;
     }}
     
-    /* CONTROL ABSOLUTO DE COLORES DE LETRA EN COMPONENTES NATIVOS */
     .stApp p, .stApp span, .stApp label, .stApp h1, .stApp h2, .stApp h3, .stApp div, 
     .stMarkdown, .stMetric, [data-testid="stMetricValue"], [data-testid="stMetricLabel"],
     table, th, td, tr, .stDataFrame {{
         color: {css_text_fixed} !important;
     }}
     
-    /* --- REDISEÑO DEL TOGGLE NATIVO DE STREAMLIT A ESTILO IPHONE --- */
     div[data-testid="stCheckbox"] {{
         background-color: {css_card} !important;
         border: 1px solid {css_border} !important;
@@ -108,7 +103,6 @@ st.markdown(f"""
         align-items: center !important;
     }}
     
-    /* Gris de alto contraste visible e idéntico tanto en claro como en oscuro */
     div[data-testid="stCheckbox"] label p,
     div[data-testid="stCheckbox"] p {{
         font-weight: 600 !important;
@@ -116,23 +110,19 @@ st.markdown(f"""
         color: #4a4a4a !important; 
     }}
     
-    /* Modificación de la pista/fondo del switch */
     div[data-testid="stCheckbox"] div[role="switch"] {{
         background-color: #e9e9ea !important;
         border: none !important;
         transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }}
-    /* Color cuando el switch está encendido (Verde Apple) */
     div[data-testid="stCheckbox"] div[role="switch"][aria-checked="true"] {{
         background-color: #32d74b !important;
     }}
-    /* Modificación del círculo interior deslizable */
     div[data-testid="stCheckbox"] div[role="switch"] div {{
         background-color: #ffffff !important;
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15) !important;
     }}
 
-    /* ENCABEZADO PREMIUM MEJORADO */
     .mlb-premium-header {{
         position: relative;
         padding: 18px 24px;
@@ -167,7 +157,6 @@ st.markdown(f"""
     }}
     .sub-title-txt {{ color: #64748b !important; font-size: 0.85rem; font-weight: 500; margin: 4px 0 0 0 !important; }}
 
-    /* TARJETAS PREMIUM ADAPTATIVAS */
     .premium-card {{
         background: {css_card} !important;
         border: 1px solid {css_border} !important;
@@ -184,10 +173,8 @@ st.markdown(f"""
     .score-txt {{ font-size: 1.8rem; font-weight: 800; color: {css_accent} !important; font-family: 'JetBrains Mono', monospace; }}
     .score-empty {{ width: 35px; height: 25px; }}
     
-    /* CONFIGURACIÓN DE ELEMENTOS DINÁMICOS */
     .bar-background {{ background-color: {css_border}; height: 6px; border-radius: 3px; overflow: hidden; }}
     
-    /* GAMEDAY LIVE TICKER PANEL */
     .gameday-ticker {{
         background: {css_card};
         border: 1px solid {css_danger};
@@ -207,7 +194,6 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# ENCABEZADO CON EL NOMBRE EXACTO SOLICITADO
 st.markdown(f"""
     <div class='mlb-premium-header'>
         <div class='header-layout'>
@@ -293,6 +279,12 @@ def cargar_calendario_api(fecha_busqueda_str):
                 live_string_descr = "Live Gameday"
                 total_innings_finalizado = "9"
                 
+                # DETECCIÓN DE ESTADOS EXCEPCIONALES (Retrasado / Suspendido)
+                if "Delayed" in detailed_state or "Warmup" in detailed_state:
+                    abstract_state = "Delayed"
+                elif "Postponed" in detailed_state or "Suspended" in detailed_state or "Cancelled" in detailed_state:
+                    abstract_state = "Suspended"
+
                 if abstract_state in ["Live", "Final"]:
                     linescore_url = f"https://statsapi.mlb.com/api/v1/game/{juego['gamePk']}/linescore"
                     try:
@@ -473,11 +465,13 @@ if st.session_state.vista_actual == "dashboard":
         st.rerun()
         
     j_vivo = [g for g in cartelera_total if g["status"] == "Live"]
-    j_preview = [g for g in cartelera_total if g["status"] not in ["Live", "Final"]]
+    j_delayed = [g for g in cartelera_total if g["status"] == "Delayed"]
+    st_suspended = [g for g in cartelera_total if g["status"] == "Suspended"]
+    j_preview = [g for g in cartelera_total if g["status"] not in ["Live", "Final", "Delayed", "Suspended"]]
     j_final = [g for g in cartelera_total if g["status"] == "Final"]
     
-    # Lista unificada ordenada: En curso -> Programados -> Finalizados
-    cartelera_ordenada = j_vivo + j_preview + j_final
+    # Lista unificada ordenada con soporte para los nuevos estados excepcionales
+    cartelera_ordenada = j_vivo + j_delayed + st_suspended + j_preview + j_final
     
     # Barra métrica superior
     k1, k2, k3 = st.columns(3)
@@ -493,17 +487,31 @@ if st.session_state.vista_actual == "dashboard":
         for juego in cartelera_ordenada:
             pred_quick = ejecutar_motor_predictivo_sharp(juego["vis_completo"], juego["loc_completo"])
             
+            # GESTIÓN VISUAL DE ESTADOS EN EL DASHBOARD
             if juego["status"] == "Live":
                 live_detail = juego['live_metadata'].replace("Live Gameday -", "").strip()
                 badge_lbl = f"🔴 Partidos en curso — {live_detail}" if "-" in juego['live_metadata'] else "🔴 Partidos en curso"
+                color_badge = css_accent
                 marcador_v = f"<span class='score-txt'>{juego['vis_score']}</span>"
                 marcador_l = f"<span class='score-txt'>{juego['loc_score']}</span>"
+            elif juego["status"] == "Delayed":
+                badge_lbl = "⚠️ PARTIDO RETRASADO"
+                color_badge = css_warning
+                marcador_v = "<div class='score-empty'></div>"
+                marcador_l = "<div class='score-empty'></div>"
+            elif juego["status"] == "Suspended":
+                badge_lbl = "❌ PARTIDO SUSPENDIDO"
+                color_badge = css_danger
+                marcador_v = "<div class='score-empty'></div>"
+                marcador_l = "<div class='score-empty'></div>"
             elif juego["status"] == "Final":
                 badge_lbl = f"🏁 Partidos finalizados ({juego['innings_final']} Inn)"
+                color_badge = css_muted
                 marcador_v = f"<span class='score-txt'>{juego['vis_score']}</span>"
                 marcador_l = f"<span class='score-txt'>{juego['loc_score']}</span>"
             else:
                 badge_lbl = f"🕒 {juego['hora_texto']}"
+                color_badge = css_accent
                 marcador_v = "<div class='score-empty'></div>"
                 marcador_l = "<div class='score-empty'></div>"
                 
@@ -511,7 +519,7 @@ if st.session_state.vista_actual == "dashboard":
                 <div class='premium-card'>
                     <div style='display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid {css_border}; padding-bottom:6px; margin-bottom:10px;'>
                         <div style='font-size:0.8rem; color:{css_muted}; font-weight:700;'>ID JUEGO #{juego['id_juego']}</div>
-                        <div style='font-weight:700; font-size:0.85rem; color:{css_accent};'>{badge_lbl}</div>
+                        <div style='font-weight:700; font-size:0.85rem; color:{color_badge};'>{badge_lbl}</div>
                     </div>
                     <div class='scoreboard-row'>
                         <div class='team-box'>
@@ -532,10 +540,14 @@ if st.session_state.vista_actual == "dashboard":
             
             c_b1, c_b2 = st.columns(2)
             with c_b1:
-                if st.button(f"🔴 Central Gameday #{juego['id_juego']}", key=f"tg_live_{juego['id_juego']}"):
-                    st.session_state.juego_foco = juego
-                    st.session_state.vista_actual = "resumen"
-                    st.rerun()
+                # El acceso al gameday se deshabilita elegantemente en partidos suspendidos ya que no hay datos en vivo activos
+                if juego["status"] == "Suspended":
+                    st.button(f"🚫 Suspendido #{juego['id_juego']}", key=f"tg_live_{juego['id_juego']}", disabled=True)
+                else:
+                    if st.button(f"🔴 Central Gameday #{juego['id_juego']}", key=f"tg_live_{juego['id_juego']}"):
+                        st.session_state.juego_foco = juego
+                        st.session_state.vista_actual = "resumen"
+                        st.rerun()
             with c_b2:
                 if st.button(f"🎯 Análisis Técnico #{juego['id_juego']}", key=f"tg_pred_{juego['id_juego']}"):
                     st.session_state.juego_foco = juego
@@ -560,10 +572,18 @@ elif st.session_state.vista_actual == "resumen":
     flecha_half = "▲ Alta" if live_data["is_top"] else "▼ Baja"
     estado_marcador_live = f"{juego['vis_siglas']} {live_data['runs_v']} - {live_data['runs_l']} {juego['loc_siglas']}"
     
+    # Manejo dinámico de alertas dentro de la vista expandida del Ticker
+    if juego["status"] == "Delayed":
+        texto_alerta_ticker = f"⚠️ ALERTA: PARTIDO RETRASADO ({juego['detalle']})"
+        color_borde_ticker = css_warning
+    else:
+        texto_alerta_ticker = f"ESTADO DEL DIAMANTE: {estado_marcador_live}"
+        color_borde_ticker = css_danger
+
     st.markdown(f"""
-        <div class='gameday-ticker'>
+        <div class='gameday-ticker' style='border-color: {color_borde_ticker} !important;'>
             <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;'>
-                <div><span class='live-pulse'></span><strong>ESTADO DEL DIAMANTE: {estado_marcador_live}</strong></div>
+                <div><span class='live-pulse' style='background-color: {color_borde_ticker}; box-shadow: 0 0 10px {color_borde_ticker};'></span><strong>{texto_alerta_ticker}</strong></div>
                 <div style='color:{css_accent}; font-weight:bold; font-size:0.9rem;'>{flecha_half} del {live_data['inning']}</div>
             </div>
             <div style='display:grid; grid-template-columns: 1fr 2fr; gap:12px; margin-bottom:12px;'>
@@ -672,6 +692,6 @@ elif st.session_state.vista_actual == "pronostico":
     st.markdown("### 📌 Informe Técnico de Análisis (Front-Office Report)")
     fav_gl = juego["vis_name"] if pred["idx_v"] > pred["idx_l"] else juego["loc_name"]
     st.info(f"""
-    **Análisis de Silicona Operativa:** Entrando a este compromiso, el modelo cuantitativo posiciona a **{fav_gl}** con ventaja matemática estructural. 
+    **Análisis de Situación Operativa:** Entrando a este compromiso, el modelo cuantitativo posiciona a **{fav_gl}** con ventaja matemática estructural. 
     Esta conclusión se deriva de los cruces de contacto fuerte e indicadores de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El value esperado (EV+) favors la consistencia del vector analítico dominante bajo una certeza de simulación del **{pred['confianza']}%**.
     """)
