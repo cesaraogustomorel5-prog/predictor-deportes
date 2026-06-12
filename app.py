@@ -8,6 +8,32 @@ import hashlib
 import time
 
 # =====================================================================
+# MODULO 0: MOTOR DE TRADUCCIÓN (I18N)
+# =====================================================================
+TRADUCCIONES = {
+    "ES": {
+        "title": "SHARP QUANT SYSTEM",
+        "subtitle": "SISTEMA AVANZADO DE PREDICCIÓN CUANTITATIVA Y MONITOREO EN VIVO",
+        "back": "⚾ VOLVER AL CALENDARIO",
+        "filter": "Filtro Temporal",
+        "total": "📅 Total", "live": "🔴 En curso", "final": "🏁 Final", "missing": "⏳ Faltantes", "suspended": "❌ Suspend.",
+        "lang_label": "🌍 Idioma", "mode_dark": "Modo Oscuro", "mode_light": "Modo Claro"
+    },
+    "EN": {
+        "title": "SHARP QUANT SYSTEM",
+        "subtitle": "ADVANCED QUANTITATIVE PREDICTION AND LIVE MONITORING SYSTEM",
+        "back": "⚾ BACK TO CALENDAR",
+        "filter": "Time Filter",
+        "total": "📅 Total", "live": "🔴 Live", "final": "🏁 Final", "missing": "⏳ Upcoming", "suspended": "❌ Susp.",
+        "lang_label": "🌍 Language", "mode_dark": "Dark Mode", "mode_light": "Light Mode"
+    }
+}
+
+if "lang" not in st.session_state: st.session_state.lang = "ES"
+def _T(key): return TRADUCCIONES[st.session_state.lang].get(key, key)
+
+
+# =====================================================================
 # MODULO 1: TELEMETRÍA, PROTOCOLO DE ESTADO ENG COMPLETO & TIMING BI-DIRECCIONAL
 # =====================================================================
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
