@@ -197,21 +197,23 @@ st.markdown(f"""
         background: {css_card};
         border: 1px solid {css_border};
         border-radius: 10px;
-        padding: 8px 12px;
+        padding: 8px 6px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
         box-shadow: 0 2px 8px {css_shadow};
+        min-height: 68px;
     }}
     .mini-metric-label {{
-        font-size: 0.78rem !important;
+        font-size: 0.72rem !important;
         font-weight: 600;
         color: {css_muted} !important;
-        margin-bottom: 2px;
+        margin-bottom: 4px;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.2px;
+        line-height: 1.1;
     }}
     .mini-metric-value {{
         font-size: 1.25rem !important;
@@ -504,40 +506,40 @@ if st.session_state.vista_actual == "dashboard":
     # Lista unificada ordenada
     cartelera_ordenada = j_vivo + j_delayed + st_suspended + j_preview + j_final
     
-    # RENDERIZADO COMPACTO EN HTML (SIN ESPACIOS VACÍOS VERTICALES)
+    # RENDERIZADO COMPACTO CON NOMBRES SOLICITADOS EN UNA SOLA LÍNEA
     k1, k2, k3, k4, k5 = st.columns(5)
     with k1:
         st.markdown(f"""
             <div class='mini-metric-container'>
-                <div class='mini-metric-label'>📅 Del Día</div>
+                <div class='mini-metric-label'>📅 Partidos del día</div>
                 <div class='mini-metric-value'>{len(cartelera_total)}</div>
             </div>
         """, unsafe_allow_html=True)
     with k2:
         st.markdown(f"""
             <div class='mini-metric-container'>
-                <div class='mini-metric-label'>🔴 En Curso</div>
+                <div class='mini-metric-label'>🔴 Partidos en curso</div>
                 <div class='mini-metric-value'>{len(j_vivo)}</div>
             </div>
         """, unsafe_allow_html=True)
     with k3:
         st.markdown(f"""
             <div class='mini-metric-container'>
-                <div class='mini-metric-label'>🏁 Finalizados</div>
+                <div class='mini-metric-label'>🏁 Partidos finalizados</div>
                 <div class='mini-metric-value'>{len(j_final)}</div>
             </div>
         """, unsafe_allow_html=True)
     with k4:
         st.markdown(f"""
             <div class='mini-metric-container'>
-                <div class='mini-metric-label'>⏳ Faltantes</div>
+                <div class='mini-metric-label'>⏳ Partidos faltantes</div>
                 <div class='mini-metric-value'>{partidos_faltantes_total}</div>
             </div>
         """, unsafe_allow_html=True)
     with k5:
         st.markdown(f"""
             <div class='mini-metric-container'>
-                <div class='mini-metric-label'>❌ Suspendidos</div>
+                <div class='mini-metric-label'>❌ Partidos suspendidos</div>
                 <div class='mini-metric-value'>{partidos_suspendidos_total}</div>
             </div>
         """, unsafe_allow_html=True)
