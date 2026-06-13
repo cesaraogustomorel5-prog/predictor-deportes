@@ -110,54 +110,78 @@ BASE_ES = {
     "report_body": "Análisis de Situación Operativa: Entrando a este compromiso, el modelo cuantitativo posiciona a {team} con ventaja matemática estructural. Esta conclusión se deriva de los cruces de contacto fuerte e indicadores de picheo avanzado como xFIP y xERA. Las variables climáticas y el factor de parque han sido normalizados con respecto al ISO de las alineaciones para generar el marcador proyectado asimétrico. El value esperado (EV+) favorece la consistencia del vector analítico dominante bajo una certeza de simulación del {conf}%.",
 }
 
-@st.cache_data(ttl=3600, show_spinner=False)
+# Términos técnicos que NO deben traducirse
+TERMINOS_PROTEGIDOS = [
+    "xERA", "xFIP", "WHIP", "OPS", "wRC+", "ISO", "BABIP", "EV+",
+    "Linescore", "Gameday", "Scoring Plays", "Sharp Quant System", "MLB",
+    "Hard Hit Rate", "Barrel", "ERA", "SHARP QUANT SYSTEM"
+]
+
+def _proteger_texto(texto):
+    """Reemplaza términos técnicos con marcadores temporales."""
+    protegidos = {}
+    resultado = texto
+    for i, term in enumerate(TERMINOS_PROTEGIDOS):
+        if term in resultado:
+            marcador = f"__TERM{i}__"
+            protegidos[marcador] = term
+            resultado = resultado.replace(term, marcador)
+    return resultado, protegidos
+
+def _restaurar_texto(texto, protegidos):
+    """Restaura los términos técnicos protegidos."""
+    resultado = texto
+    for marcador, term in protegidos.items():
+        resultado = resultado.replace(marcador, term)
+    return resultado
+
+def _traducir_texto_mymemory(texto, lang_destino):
+    """Traduce un texto usando MyMemory API (gratuita, sin API key)."""
+    # No traducir si está vacío, es un emoji puro, o es número
+    if not texto or not any(c.isalpha() for c in texto):
+        return texto
+    # Proteger términos técnicos
+    texto_protegido, protegidos = _proteger_texto(texto)
+    try:
+        url = "https://api.mymemory.translated.net/get"
+        params = {
+            "q": texto_protegido,
+            "langpair": f"es|{lang_destino}",
+            "de": "app@sharpquant.com"  # Email opcional para mayor cuota
+        }
+        resp = requests.get(url, params=params, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            traduccion = data.get("responseData", {}).get("translatedText", texto_protegido)
+            # MyMemory a veces devuelve error como texto
+            if "MYMEMORY WARNING" in traduccion or traduccion == texto_protegido:
+                return _restaurar_texto(texto_protegido, protegidos)
+            return _restaurar_texto(traduccion, protegidos)
+    except Exception:
+        pass
+    return _restaurar_texto(texto_protegido, protegidos)
+
+@st.cache_data(ttl=86400, show_spinner=False)
 def traducir_con_claude(lang_code, lang_name):
-    """Traduce todas las cadenas de la UI usando la API de Claude."""
+    """Traduce todas las cadenas de la UI usando MyMemory API (gratuita)."""
     if lang_code == "es":
         return BASE_ES
 
-    textos_json = str(BASE_ES)
+    traducido = {}
+    for key, valor in BASE_ES.items():
+        # Preservar emojis al inicio/final y traducir solo el texto
+        if isinstance(valor, str):
+            # Separar emoji del inicio si existe
+            partes = valor
+            traducido[key] = _traducir_texto_mymemory(partes, lang_code)
+        else:
+            traducido[key] = valor
 
-    prompt = f"""Traduce EXACTAMENTE el siguiente diccionario Python del español al idioma: {lang_name} (código: {lang_code}).
+    # Verificación mínima: si falló todo, usar español
+    if sum(1 for k in traducido if traducido[k] != BASE_ES[k]) < 3:
+        return BASE_ES
 
-REGLAS ESTRICTAS:
-1. Devuelve SOLO el diccionario Python válido, sin explicaciones ni markdown.
-2. Mantén EXACTAMENTE las mismas claves (keys) en inglés.
-3. Traduce SOLO los valores (values) al idioma destino.
-4. Conserva los emojis, #, placeholders como {{team}} y {{conf}}, símbolos especiales.
-5. No traduzcas nombres propios técnicos: xERA, xFIP, WHIP, OPS, wRC+, ISO, BABIP, EV+, Linescore, Gameday, Scoring Plays, Sharp Quant System, MLB.
-6. Para árabe/hebreo mantén la dirección del texto normal en el valor.
-
-Diccionario a traducir:
-{textos_json}
-
-Responde ÚNICAMENTE con el diccionario Python, comenzando con {{ y terminando con }}"""
-
-    try:
-        response = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={"Content-Type": "application/json"},
-            json={
-                "model": "claude-sonnet-4-6",
-                "max_tokens": 4000,
-                "messages": [{"role": "user", "content": prompt}]
-            },
-            timeout=30
-        )
-        if response.status_code == 200:
-            raw = response.json()["content"][0]["text"].strip()
-            # Limpiar posible markdown
-            if raw.startswith("```"):
-                raw = raw.split("```")[1]
-                if raw.startswith("python"):
-                    raw = raw[6:]
-            raw = raw.strip().rstrip("```").strip()
-            traducido = eval(raw)
-            if isinstance(traducido, dict) and len(traducido) > 10:
-                return traducido
-    except Exception as e:
-        pass
-    return BASE_ES  # Fallback a español
+    return traducido
 
 
 # =====================================================================
