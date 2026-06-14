@@ -893,45 +893,63 @@ def partido_destacado(juegos):
     return prev[0]["id"] if prev else juegos[0]["id"]
 
 # =====================================================================
-# CAMBIO 3: FUNCIÓN IA PARA EL ASISTENTE VIRTUAL
-# Responde en el idioma activo, cubre todos los módulos de la app
+# CAMBIO 3: ASISTENTE VIRTUAL IA — REAL (Claude API)
+# Responde cualquier pregunta libre sobre la app en el idioma activo
 # =====================================================================
-def ia_asistente_responder(mensaje, lang_code):
-    m = mensaje.lower().strip()
+def ia_asistente_responder(mensaje, lang_code, historial):
+    SYSTEM_PROMPT = (
+        "Eres el asistente inteligente de Sharp Quant System, plataforma avanzada "
+        "de análisis deportivo de béisbol MLB con predicciones cuantitativas en tiempo real. "
+        "Conoces TODA la plataforma en detalle:\n\n"
+        "MÓDULOS:\n"
+        "- Dashboard: calendario del día ordenado (En Vivo > Retrasados > Suspendidos > Próximos > Finalizados). 5 KPIs glassmorphism.\n"
+        "- Tarjetas: logo, marcador, barra de probabilidad animada, badge de estado, partido destacado con borde iluminado.\n"
+        "- Ver En Vivo: conteo bolas-strikes, outs, pitcher, bateador, diamante SVG con almohadillas (🟡 ocupada/⚪ libre), pizarra R/H/E por inning, jugadas anotadoras. Actualización cada 7 segundos.\n"
+        "- Análisis Técnico: marcador proyectado, probabilidades, certeza 54-90%, 10 métricas sabérmetricas, barras de fortaleza, informe ejecutivo.\n\n"
+        "MOTOR PREDICTIVO:\n"
+        "- Pesos: Ofensiva 30%, Rotación 25%, Bullpen 20%, Defensa 15%, Momentum 10%.\n"
+        "- Métricas: OPS, wRC+, ISO, BABIP, Hard Hit Rate, Barrel%, xERA, xFIP, WHIP, ERA Bullpen.\n"
+        "- Métricas inversas (xERA, xFIP, WHIP, ERA): ventaja cuando el valor es MENOR.\n\n"
+        "DATOS:\n"
+        "- API oficial MLB. Calendario cada 15s. Feed en vivo cada 7s.\n"
+        "- Traducción MyMemory API (29 idiomas), caché 24h.\n\n"
+        "INTERFAZ:\n"
+        "- 29 idiomas, selector en sidebar izquierdo.\n"
+        "- Modo oscuro/claro con toggle en sidebar.\n"
+        "- Botón ☰ para volver al calendario.\n"
+        "- Chat flotante 💬 esquina inferior derecha.\n"
+        "- Glassmorphism, animaciones premium.\n\n"
+        f"Responde en el idioma del usuario (código: {lang_code}). "
+        "Sé conciso y útil. Usa emojis relevantes. "
+        "Responde SOLO sobre Sharp Quant System y béisbol MLB."
+    )
 
-    # Base de conocimiento de la app
-    respuestas_es = {
-        "prediccion": "🤖 El motor predictivo analiza xFIP, xERA, OPS, BABIP, Hard Hit Rate y Barrel% de ambos equipos. Pondera Ofensiva (30%), Rotación (25%), Bullpen (20%), Defensa (15%) y Momentum (10%) para calcular probabilidades y marcador proyectado.",
-        "pronostico": "🤖 El motor predictivo analiza xFIP, xERA, OPS, BABIP, Hard Hit Rate y Barrel% de ambos equipos. Pondera Ofensiva (30%), Rotación (25%), Bullpen (20%), Defensa (15%) y Momentum (10%) para calcular probabilidades y marcador proyectado.",
-        "vivo": "📡 La vista 'Ver En Vivo' muestra: marcador en tiempo real, conteo (bolas-strikes), outs, pitcher y bateador activos, ocupación de almohadillas (diamante), tabla de carreras por inning (Linescore) y resumen de jugadas anotadoras. Se actualiza cada 7 segundos automáticamente.",
-        "live": "📡 La vista 'Ver En Vivo' muestra: marcador en tiempo real, conteo (bolas-strikes), outs, pitcher y bateador activos, ocupación de almohadillas (diamante), tabla de carreras por inning (Linescore) y resumen de jugadas anotadoras. Se actualiza cada 7 segundos automáticamente.",
-        "almohadilla": "🔵 Las almohadillas (1B, 2B, 3B) aparecen con 🟡 cuando hay corredor y ⚪ cuando están libres. Se sincronizan desde la API oficial de MLB en tiempo real.",
-        "diamante": "🔵 Las almohadillas (1B, 2B, 3B) aparecen con 🟡 cuando hay corredor y ⚪ cuando están libres. Se sincronizan desde la API oficial de MLB en tiempo real.",
-        "linescore": "📊 La Pizarra Oficial muestra las carreras anotadas por cada equipo en cada inning, más los totales de Carreras (R), Hits (H) y Errores (E).",
-        "inning": "⚾ Los innings se muestran en la pizarra oficial. 'Alta' indica la primera mitad del inning (equipo visitante al bate) y 'Baja' la segunda mitad (equipo local al bate).",
-        "idioma": f"🌍 Sharp Quant System soporta 29 idiomas. Puedes cambiarlo desde el panel lateral izquierdo. Actualmente estás usando el idioma con código: {lang_code}.",
-        "language": f"🌍 Sharp Quant System supports 29 languages. Change it from the left sidebar. You are currently using: {lang_code}.",
-        "tema": "🎨 El modo oscuro/claro se activa desde el panel lateral izquierdo con el toggle de tema.",
-        "oscuro": "🎨 El modo oscuro/claro se activa desde el panel lateral izquierdo con el toggle de tema.",
-        "análisis": "🎯 El módulo de Análisis Técnico muestra: marcador proyectado, probabilidades por equipo, tabla de 10 métricas sabérmetricas comparativas, barras de fortaleza estructural e informe ejecutivo con ventaja detectada.",
-        "sabermetrico": "📈 Las métricas sabérmetricas incluyen: OPS, wRC+, ISO, BABIP, Hard Hit Rate, Barrel%, xERA, xFIP, WHIP y ERA del Bullpen. Las inversas (xERA, xFIP, WHIP, ERA) indican ventaja cuando el valor es menor.",
-        "favorito": "⭐ En este módulo no hay gestión de favoritos. Puedes navegar al partido que te interese desde el calendario principal.",
-        "api": "🔗 Los datos provienen de la API oficial de MLB (statsapi.mlb.com). El calendario se actualiza cada 15 segundos y el feed en vivo cada 7 segundos.",
-        "hola": "👋 ¡Hola! Soy el asistente de Sharp Quant System. Puedo explicarte predicciones, datos en vivo, métricas sabérmetricas, el sistema de idiomas y todas las funciones de la plataforma. ¿Qué quieres saber?",
-        "hello": "👋 Hello! I'm the Sharp Quant System assistant. I can explain predictions, live data, sabermetric metrics, the language system and all platform features. What do you want to know?",
-        "destacado": "⭐ El partido destacado se selecciona automáticamente priorizando: partidos en vivo con mayor intensidad (diferencia de carreras + innings avanzados), luego próximos partidos. Se marca con borde iluminado y badge especial.",
-        "menu": "☰ El botón de menú (☰) aparece cuando estás en una vista de partido. Úsalo para volver al calendario principal.",
-        "calendario": "📅 El calendario muestra todos los partidos del día. Puedes cambiar la fecha con el selector. Los partidos se ordenan: En Vivo → Retrasados → Suspendidos → Próximos → Finalizados.",
-        "confianza": "🎯 El Índice de Confianza varía entre 54% y 90%. Se calcula según la disparidad entre los vectores de ambos equipos: mayor diferencia = mayor confianza en la predicción.",
-        "default": "🤖 Entiendo tu consulta. Sharp Quant System es una plataforma de análisis deportivo con predicciones cuantitativas en tiempo real. Puedes preguntarme sobre: predicciones, datos en vivo, métricas sabérmetricas, idiomas, el partido destacado, el calendario o cualquier función de la app.",
-    }
+    messages = []
+    for h in historial:
+        role = "user" if h["r"] == "u" else "assistant"
+        messages.append({"role": role, "content": h["t"]})
+    messages.append({"role": "user", "content": mensaje})
 
-    # Detectar tema de la pregunta
-    for keyword, respuesta in respuestas_es.items():
-        if keyword in m:
-            return respuesta
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={"Content-Type": "application/json"},
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 400,
+                "system": SYSTEM_PROMPT,
+                "messages": messages
+            },
+            timeout=15
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            return data["content"][0]["text"]
+        else:
+            return f"🤖 Error al conectar con la IA ({resp.status_code}). Intenta de nuevo."
+    except Exception:
+        return "🤖 Sin conexión con la IA en este momento. Intenta de nuevo en unos segundos."
 
-    return respuestas_es["default"]
 
 # =====================================================================
 # CARGAR DATOS
@@ -1287,8 +1305,8 @@ if st.session_state.chat_open:
             if st.button(_T("chat_send"), key="chat_send_btn"):
                 if u_msg and u_msg.strip():
                     st.session_state.chat_msgs.append({"r":"u","t":u_msg.strip()})
-                    # CAMBIO 3: respuesta IA real en lugar del mensaje fijo
-                    respuesta_ia = ia_asistente_responder(u_msg.strip(), st.session_state.lang_code)
+                    # CAMBIO 3: respuesta IA real con historial completo
+                    respuesta_ia = ia_asistente_responder(u_msg.strip(), st.session_state.lang_code, st.session_state.chat_msgs)
                     st.session_state.chat_msgs.append({"r":"b","t":respuesta_ia})
                     st.session_state.chat_input_key += 1
                     st.rerun()
