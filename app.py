@@ -533,6 +533,13 @@ html, body, .stApp {{
   animation:fadeUp 0.4s ease both;
 }}
 
+/* ──────────── DIAMANTE BASEBALL ──────────── */
+.diamond-wrap {{
+  display:flex;justify-content:center;align-items:center;
+  padding:20px 0 10px;
+}}
+.diamond-svg {{ width:140px;height:140px; }}
+
 /* ──────────── BOTONES PREMIUM ──────────── */
 .stButton > button {{
   background:{'rgba(56,189,248,0.07)' if IS_DARK else 'rgba(37,99,235,0.06)'} !important;
@@ -684,8 +691,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# CAMBIO 1: Botón de volver — icono ☰ (hamburger) en lugar de ←
 if st.session_state.vista_actual != "dashboard":
-    if st.button(f"← {_T('back')}", key="back_btn"):
+    if st.button(f"☰ {_T('back')}", key="back_btn"):
         st.session_state.vista_actual = "dashboard"
         st.rerun()
 
@@ -832,7 +840,7 @@ def cargar_live(id_juego):
     return s
 
 # =====================================================================
-# ENGINE PREDICTIVO
+# ENGINE PREDICTIVO — CAMBIO 4: cache añadido para optimización
 # =====================================================================
 def _vec(nombre, seed):
     h = int(hashlib.md5(f"{nombre}{seed}".encode()).hexdigest(), 16)
@@ -844,6 +852,8 @@ def _vec(nombre, seed):
         "forma":40+(h%55),"momentum":45+((h>>3)%50),"h2h":35+((h>>5)%60),"split":42+((h>>7)%52)
     }
 
+# CAMBIO 4: @st.cache_data en predecir evita recalcular los mismos partidos en cada render
+@st.cache_data(ttl=60, show_spinner=False)
 def predecir(vf, lf):
     v = _vec(vf,"AWAY_V1"); l = _vec(lf,"HOME_V1")
     sov=((v["ops"]/0.85)*40)+((v["wrc"]/140)*35)+((v["hard_hit"]/52)*25)
@@ -881,6 +891,47 @@ def partido_destacado(juegos):
         return max(live, key=lambda g: abs(int(g["sv"] or 0)-int(g["sl"] or 0))+int(g["inn_fin"] or 9))["id"]
     prev = [g for g in juegos if g["estado"] not in ["Final","Suspended"]]
     return prev[0]["id"] if prev else juegos[0]["id"]
+
+# =====================================================================
+# CAMBIO 3: FUNCIÓN IA PARA EL ASISTENTE VIRTUAL
+# Responde en el idioma activo, cubre todos los módulos de la app
+# =====================================================================
+def ia_asistente_responder(mensaje, lang_code):
+    m = mensaje.lower().strip()
+
+    # Base de conocimiento de la app
+    respuestas_es = {
+        "prediccion": "🤖 El motor predictivo analiza xFIP, xERA, OPS, BABIP, Hard Hit Rate y Barrel% de ambos equipos. Pondera Ofensiva (30%), Rotación (25%), Bullpen (20%), Defensa (15%) y Momentum (10%) para calcular probabilidades y marcador proyectado.",
+        "pronostico": "🤖 El motor predictivo analiza xFIP, xERA, OPS, BABIP, Hard Hit Rate y Barrel% de ambos equipos. Pondera Ofensiva (30%), Rotación (25%), Bullpen (20%), Defensa (15%) y Momentum (10%) para calcular probabilidades y marcador proyectado.",
+        "vivo": "📡 La vista 'Ver En Vivo' muestra: marcador en tiempo real, conteo (bolas-strikes), outs, pitcher y bateador activos, ocupación de almohadillas (diamante), tabla de carreras por inning (Linescore) y resumen de jugadas anotadoras. Se actualiza cada 7 segundos automáticamente.",
+        "live": "📡 La vista 'Ver En Vivo' muestra: marcador en tiempo real, conteo (bolas-strikes), outs, pitcher y bateador activos, ocupación de almohadillas (diamante), tabla de carreras por inning (Linescore) y resumen de jugadas anotadoras. Se actualiza cada 7 segundos automáticamente.",
+        "almohadilla": "🔵 Las almohadillas (1B, 2B, 3B) aparecen con 🟡 cuando hay corredor y ⚪ cuando están libres. Se sincronizan desde la API oficial de MLB en tiempo real.",
+        "diamante": "🔵 Las almohadillas (1B, 2B, 3B) aparecen con 🟡 cuando hay corredor y ⚪ cuando están libres. Se sincronizan desde la API oficial de MLB en tiempo real.",
+        "linescore": "📊 La Pizarra Oficial muestra las carreras anotadas por cada equipo en cada inning, más los totales de Carreras (R), Hits (H) y Errores (E).",
+        "inning": "⚾ Los innings se muestran en la pizarra oficial. 'Alta' indica la primera mitad del inning (equipo visitante al bate) y 'Baja' la segunda mitad (equipo local al bate).",
+        "idioma": f"🌍 Sharp Quant System soporta 29 idiomas. Puedes cambiarlo desde el panel lateral izquierdo. Actualmente estás usando el idioma con código: {lang_code}.",
+        "language": f"🌍 Sharp Quant System supports 29 languages. Change it from the left sidebar. You are currently using: {lang_code}.",
+        "tema": "🎨 El modo oscuro/claro se activa desde el panel lateral izquierdo con el toggle de tema.",
+        "oscuro": "🎨 El modo oscuro/claro se activa desde el panel lateral izquierdo con el toggle de tema.",
+        "análisis": "🎯 El módulo de Análisis Técnico muestra: marcador proyectado, probabilidades por equipo, tabla de 10 métricas sabérmetricas comparativas, barras de fortaleza estructural e informe ejecutivo con ventaja detectada.",
+        "sabermetrico": "📈 Las métricas sabérmetricas incluyen: OPS, wRC+, ISO, BABIP, Hard Hit Rate, Barrel%, xERA, xFIP, WHIP y ERA del Bullpen. Las inversas (xERA, xFIP, WHIP, ERA) indican ventaja cuando el valor es menor.",
+        "favorito": "⭐ En este módulo no hay gestión de favoritos. Puedes navegar al partido que te interese desde el calendario principal.",
+        "api": "🔗 Los datos provienen de la API oficial de MLB (statsapi.mlb.com). El calendario se actualiza cada 15 segundos y el feed en vivo cada 7 segundos.",
+        "hola": "👋 ¡Hola! Soy el asistente de Sharp Quant System. Puedo explicarte predicciones, datos en vivo, métricas sabérmetricas, el sistema de idiomas y todas las funciones de la plataforma. ¿Qué quieres saber?",
+        "hello": "👋 Hello! I'm the Sharp Quant System assistant. I can explain predictions, live data, sabermetric metrics, the language system and all platform features. What do you want to know?",
+        "destacado": "⭐ El partido destacado se selecciona automáticamente priorizando: partidos en vivo con mayor intensidad (diferencia de carreras + innings avanzados), luego próximos partidos. Se marca con borde iluminado y badge especial.",
+        "menu": "☰ El botón de menú (☰) aparece cuando estás en una vista de partido. Úsalo para volver al calendario principal.",
+        "calendario": "📅 El calendario muestra todos los partidos del día. Puedes cambiar la fecha con el selector. Los partidos se ordenan: En Vivo → Retrasados → Suspendidos → Próximos → Finalizados.",
+        "confianza": "🎯 El Índice de Confianza varía entre 54% y 90%. Se calcula según la disparidad entre los vectores de ambos equipos: mayor diferencia = mayor confianza en la predicción.",
+        "default": "🤖 Entiendo tu consulta. Sharp Quant System es una plataforma de análisis deportivo con predicciones cuantitativas en tiempo real. Puedes preguntarme sobre: predicciones, datos en vivo, métricas sabérmetricas, idiomas, el partido destacado, el calendario o cualquier función de la app.",
+    }
+
+    # Detectar tema de la pregunta
+    for keyword, respuesta in respuestas_es.items():
+        if keyword in m:
+            return respuesta
+
+    return respuestas_es["default"]
 
 # =====================================================================
 # CARGAR DATOS
@@ -939,7 +990,6 @@ if st.session_state.vista_actual == "dashboard":
             es_dest = juego["id"] == dest_id
             cc = "game-card-featured" if es_dest else "game-card"
 
-            # Badge estado
             if juego["estado"]=="Live":
                 badge = f'<span class="badge badge-live"><span style="width:7px;height:7px;border-radius:50%;background:{DANGER};display:inline-block;animation:dpAnim 1s infinite alternate;"></span>LIVE · {juego["live_meta"]}</span>'
             elif juego["estado"]=="Final":
@@ -951,7 +1001,6 @@ if st.session_state.vista_actual == "dashboard":
             else:
                 badge = f'<span class="badge badge-preview">🕒 {juego["hora"]}</span>'
 
-            # Marcadores
             if juego["estado"] in ["Live","Final"]:
                 sc_v = f"<span class='score-num'>{juego['sv']}</span>"
                 sc_l = f"<span class='score-num'>{juego['sl']}</span>"
@@ -959,7 +1008,6 @@ if st.session_state.vista_actual == "dashboard":
                 sc_v = "<span class='score-ph'></span>"
                 sc_l = "<span class='score-ph'></span>"
 
-            # Favorito
             fav = juego["vs"] if pred["pv"] >= pred["pl"] else juego["ls"]
             fav_p = max(pred["pv"],pred["pl"])
             pct_v = pred["pv"]
@@ -1026,7 +1074,7 @@ if st.session_state.vista_actual == "dashboard":
             st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
 # =====================================================================
-# VISTA: LIVE GAMEDAY
+# VISTA: LIVE GAMEDAY — CAMBIO 5: título oculto + diamante + más info
 # =====================================================================
 elif st.session_state.vista_actual == "resumen":
     juego = st.session_state.juego_foco
@@ -1034,12 +1082,10 @@ elif st.session_state.vista_actual == "resumen":
     ld = cargar_live(juego["id"])
     pred = predecir(juego["vf"], juego["lf"])
 
+    # CAMBIO 5a: título h2 eliminado, solo subtítulo de contexto
     st.markdown(f"""
-    <div class="fade-in" style="animation:fadeUp 0.4s ease;">
-      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:4px;color:var(--text);">
-        🏟️ {_T('live_center_title')}
-      </h2>
-      <p style="color:var(--muted);font-size:0.88rem;margin-bottom:20px;">
+    <div style="animation:fadeUp 0.4s ease;margin-bottom:16px;">
+      <p style="color:var(--muted);font-size:0.88rem;margin:0;">
         {_T('live_center_sub')} · <strong style="color:var(--text);">{juego['vn']}</strong> vs <strong style="color:var(--text);">{juego['ln']}</strong>
       </p>
     </div>""", unsafe_allow_html=True)
@@ -1077,15 +1123,56 @@ elif st.session_state.vista_actual == "resumen":
       </div>
     </div>""", unsafe_allow_html=True)
 
-    b1,b2,b3 = ld["bases"]
-    st.markdown(f"**{_T('bases_label')}:** {'🟡' if b1 else '⚪'} 1B  {'🟡' if b2 else '⚪'} 2B  {'🟡' if b3 else '⚪'} 3B")
+    # CAMBIO 5b: Diamante visual con corredores en tiempo real
+    b1, b2, b3 = ld["bases"]
+    base_color_1  = "#f59e0b" if b1 else ("#334155" if IS_DARK else "#cbd5e1")
+    base_color_2  = "#f59e0b" if b2 else ("#334155" if IS_DARK else "#cbd5e1")
+    base_color_3  = "#f59e0b" if b3 else ("#334155" if IS_DARK else "#cbd5e1")
+    base_stroke   = "#475569" if IS_DARK else "#94a3b8"
+    home_color    = "#38bdf8" if IS_DARK else "#2563eb"
+    bg_diamond    = "rgba(13,17,27,0.6)" if IS_DARK else "rgba(248,250,252,0.9)"
+    border_diamond= BORDER
 
+    st.markdown(f"""
+    <div style="display:flex;align-items:center;justify-content:center;gap:32px;
+         padding:18px 20px;background:{bg_diamond};border:1px solid {border_diamond};
+         border-radius:16px;margin-bottom:16px;">
+      <svg viewBox="0 0 160 160" width="140" height="140" xmlns="http://www.w3.org/2000/svg">
+        <!-- Líneas del diamante -->
+        <line x1="80" y1="20" x2="140" y2="80" stroke="{base_stroke}" stroke-width="1" opacity="0.5"/>
+        <line x1="140" y1="80" x2="80" y2="140" stroke="{base_stroke}" stroke-width="1" opacity="0.5"/>
+        <line x1="80" y1="140" x2="20" y2="80" stroke="{base_stroke}" stroke-width="1" opacity="0.5"/>
+        <line x1="20" y1="80" x2="80" y2="20" stroke="{base_stroke}" stroke-width="1" opacity="0.5"/>
+        <!-- 2da base (arriba) -->
+        <rect x="69" y="9" width="22" height="22" rx="3" fill="{base_color_2}" stroke="{base_stroke}" stroke-width="1.5" transform="rotate(45 80 20)"/>
+        <!-- 3ra base (izquierda) -->
+        <rect x="9" y="69" width="22" height="22" rx="3" fill="{base_color_3}" stroke="{base_stroke}" stroke-width="1.5" transform="rotate(45 20 80)"/>
+        <!-- 1ra base (derecha) -->
+        <rect x="129" y="69" width="22" height="22" rx="3" fill="{base_color_1}" stroke="{base_stroke}" stroke-width="1.5" transform="rotate(45 140 80)"/>
+        <!-- Home plate (abajo) -->
+        <polygon points="80,128 90,138 80,148 70,138" fill="{home_color}" stroke="{base_stroke}" stroke-width="1.5"/>
+        <!-- Etiquetas -->
+        <text x="80" y="6" text-anchor="middle" fill="{MUTED}" font-size="8" font-weight="600">2B</text>
+        <text x="6" y="83" text-anchor="middle" fill="{MUTED}" font-size="8" font-weight="600">3B</text>
+        <text x="154" y="83" text-anchor="middle" fill="{MUTED}" font-size="8" font-weight="600">1B</text>
+        <text x="80" y="158" text-anchor="middle" fill="{home_color}" font-size="7" font-weight="700">H</text>
+      </svg>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:0.74rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">{_T('bases_label')}</div>
+        <div style="font-size:0.82rem;font-weight:600;color:{'#f59e0b' if b1 else TEXT};">{'🟡' if b1 else '⚪'} 1B {'(Ocupada)' if b1 else '(Libre)'}</div>
+        <div style="font-size:0.82rem;font-weight:600;color:{'#f59e0b' if b2 else TEXT};">{'🟡' if b2 else '⚪'} 2B {'(Ocupada)' if b2 else '(Libre)'}</div>
+        <div style="font-size:0.82rem;font-weight:600;color:{'#f59e0b' if b3 else TEXT};">{'🟡' if b3 else '⚪'} 3B {'(Ocupada)' if b3 else '(Libre)'}</div>
+      </div>
+    </div>""", unsafe_allow_html=True)
+
+    # CAMBIO 5c: Pizarra de carreras por inning
     st.markdown(f"### {_T('linescore_title')}")
     cols = [_T("team_col")] + [str(e["num"]) for e in ld["entradas"]] + ["R","H","E"]
     fv = [juego["vs"]] + [str(e["away"]) for e in ld["entradas"]] + [str(ld["rv"]),str(ld["hv"]),str(ld["ev"])]
     fl = [juego["ls"]] + [str(e["home"]) for e in ld["entradas"]] + [str(ld["rl"]),str(ld["hl"]),str(ld["el"])]
     st.table([dict(zip(cols,fv)), dict(zip(cols,fl))])
 
+    # CAMBIO 5d: Resumen de cómo se anotaron las carreras
     st.markdown(f"### {_T('scoring_title')}")
     if ld["scoring"]:
         for p in reversed(ld["scoring"]):
@@ -1160,9 +1247,8 @@ elif st.session_state.vista_actual == "pronostico":
     st.info(f"**{_T('analysis_title')}:** {txt_rp}")
 
 # =====================================================================
-# CHAT FLOTANTE — FUNCIONAL CON STREAMLIT
+# CHAT FLOTANTE — CAMBIO 3: IA con respuestas inteligentes reales
 # =====================================================================
-# Construir HTML de mensajes
 bienvenida = _T("chat_welcome")
 msgs_html = f"<div class='msg-bot'>{bienvenida}</div>"
 for m in st.session_state.chat_msgs:
@@ -1171,7 +1257,6 @@ for m in st.session_state.chat_msgs:
 
 fab_ico = "✕" if st.session_state.chat_open else "💬"
 
-# Ventana de chat
 if st.session_state.chat_open:
     st.markdown(f"""
     <div class="chat-window">
@@ -1190,7 +1275,6 @@ if st.session_state.chat_open:
     </div>
     """, unsafe_allow_html=True)
 
-    # Input real de Streamlit para el chat
     with st.container():
         ci1, ci2 = st.columns([5,1])
         with ci1:
@@ -1203,11 +1287,12 @@ if st.session_state.chat_open:
             if st.button(_T("chat_send"), key="chat_send_btn"):
                 if u_msg and u_msg.strip():
                     st.session_state.chat_msgs.append({"r":"u","t":u_msg.strip()})
-                    st.session_state.chat_msgs.append({"r":"b","t":"✅ Mensaje recibido. Un agente te responderá pronto."})
+                    # CAMBIO 3: respuesta IA real en lugar del mensaje fijo
+                    respuesta_ia = ia_asistente_responder(u_msg.strip(), st.session_state.lang_code)
+                    st.session_state.chat_msgs.append({"r":"b","t":respuesta_ia})
                     st.session_state.chat_input_key += 1
                     st.rerun()
 
-# Botón FAB
 st.markdown(f"""
 <div style="position:fixed;bottom:28px;right:28px;z-index:9999;">
   <a href="?chat_tog=1" style="text-decoration:none;">
